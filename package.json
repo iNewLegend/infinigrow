@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json.schemastore.org/package",
+    "name": "@infinigrow/infinigrow",
+    "type": "module",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "eslint": "eslint ."
+    },
+    "devDependencies": {
+        "@zenflux/eslint": "link:@zenflux/eslint"
+    },
+    "packageManager": "bun@0.0.11"
+}

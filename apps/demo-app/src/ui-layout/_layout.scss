@@ -1,0 +1,39 @@
+@use "@infinigrow/demo-app/src/ui-theme/fonts.scss" as fonts;
+
+.layout {
+    max-width: 1440px;
+    @apply mx-auto;
+
+    header {
+        @apply pt-[50px];
+        @apply pb-[50px];
+
+        .fs-1 {
+            font-family: map-get( fonts.$karu-fonts, 'karu-regular' );
+
+            /* Figma */
+            color: #182033;
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+
+        .fs-2 {
+            /* Figma */
+            color: #182033;
+            font-family: map-get( fonts.$karu-fonts, 'karu-bold' );
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .end {
+            @apply flex;
+            @apply justify-end;
+        }
+
+        .description {
+            font-family: "Tahoma", system-ui;
+            color: #b7b7b7;
+        }
+    }
+}
