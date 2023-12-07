@@ -1,10 +1,10 @@
 import React from "react";
 
-import { withCommands } from "@infinigrow/demo-app/src/core/with-commands";
+import { withCommands } from "@infinigrow/commander/with-commands";
 
-import { CommandBase } from "@infinigrow/demo-app/src/core/command-base";
+import { CommandBase } from "@infinigrow/commander/command-base";
 
-import { useCommand } from "@infinigrow/demo-app/src/core/use-commands";
+import { useCommand } from "@infinigrow/commander/use-commands";
 
 import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item-menu";
 

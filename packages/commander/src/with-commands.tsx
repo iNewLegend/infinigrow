@@ -2,24 +2,26 @@ import { EventEmitter } from "events";
 
 import React from "react";
 
+// eslint-disable-next-line no-restricted-imports
+import core from "./_internal/core";
+
+// eslint-disable-next-line no-restricted-imports
 import {
     REGISTER_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
     LINK_COMPONENTS,
     GET_INTERNAL_SYMBOL,
     SET_TO_CONTEXT
-} from "@infinigrow/demo-app/src/core/_internal/constants.ts";
+} from "./_internal/constants.ts";
 
-import core from "@infinigrow/demo-app/src/core/_internal/core.ts";
+import commandsManager from "@infinigrow/commander/commands-manager";
 
-import commandsManager from "@infinigrow/demo-app/src/core/commands-manager.ts";
-
-import { ComponentIdProvider } from "@infinigrow/demo-app/src/core/commands-provider";
+import { ComponentIdProvider } from "@infinigrow/commander/commands-provider";
 
 import type {
     CommandFunctionComponent,
     CommandNewInstanceWithArgs
-} from "@infinigrow/demo-app/src/core/types.ts";
+} from "@infinigrow/commander/types";
 
 export function withCommands(
     componentName: string,

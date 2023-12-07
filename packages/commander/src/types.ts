@@ -1,14 +1,15 @@
 import type React from "react";
 
+// eslint-disable-next-line no-restricted-imports
 import type {
     GET_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
     REGISTER_INTERNAL_SYMBOL
-} from "@infinigrow/demo-app/src/core/_internal/constants.ts";
+} from "./_internal/constants";
 
 import type { EventEmitter } from "events";
 
-import type { CommandBase } from "@infinigrow/demo-app/src/core/command-base.ts";
+import type { CommandBase } from "@infinigrow/commander/command-base";
 
 // Sugar, eg `ComponentType.getName` not `ComponentInstance`
 export interface CommandFunctionComponent<TProps = any> extends React.FC<TProps>{

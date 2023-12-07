@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ComponentIdContext } from "@infinigrow/demo-app/src/core/commands-context.ts";
+import { ComponentIdContext } from "@infinigrow/commander/commands-context";
 
-import type { CommandComponentContextProps } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandComponentContextProps } from "@infinigrow/commander/types";
 
 export function ComponentIdProvider( props: {
     children: React.ReactNode;

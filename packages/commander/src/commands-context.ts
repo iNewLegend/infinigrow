@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { CommandComponentContextProps } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandComponentContextProps } from "@infinigrow/commander/types";
 
 // An internal context used by `use-commands`
 export const ComponentIdContext = React.createContext<CommandComponentContextProps>( {

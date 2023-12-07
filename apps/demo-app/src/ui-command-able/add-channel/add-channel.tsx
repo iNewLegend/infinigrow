@@ -2,28 +2,33 @@ import React from "react";
 
 import { Button } from "@nextui-org/button";
 
+import { withCommands } from "@infinigrow/commander/with-commands";
+
+import { useCommand } from "@infinigrow/commander/use-commands";
+
+import { CommandBase } from "@infinigrow/commander/command-base";
+
 import { Plus } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
-import { withCommands } from "@infinigrow/demo-app/src/core/with-commands";
-
-import { useCommand } from "@infinigrow/demo-app/src/core/use-commands";
-
-import * as commands from "@infinigrow/demo-app/src/ui-command-able/add-channel/commands";
-
-import type { CommandFunctionComponent } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 const AddChannel: CommandFunctionComponent = () => {
-    const command = useCommand( "AddChannel" );
+    const command = useCommand( "App/AddChannel" );
 
     return (
-            <div>
-                <Button onClick={() => command.run( {} ) } className="add-channel" variant="bordered" radius={ "none" }>{ Plus } Add Channel</Button>
-            </div>
+        <div>
+            <Button onClick={ () => command.run( {} ) } className="add-channel" variant="bordered"
+                    radius={ "none" }>{ Plus } Add Channel</Button>
+        </div>
     );
 };
 
-const $$ = withCommands( "AddChannel", AddChannel, [
-    commands.AddChannelCommand
+const $$ = withCommands( "App/AddChannel", AddChannel, [
+    class AddChannel extends CommandBase {
+        public static getName() {
+            return "App/AddChannel";
+        }
+    }
 ] );
 
 export default $$;

@@ -1,12 +1,12 @@
 import React from "react";
 
-import commandsManager from "@infinigrow/demo-app/src/core/commands-manager.ts";
+import commandsManager from "@infinigrow/commander/commands-manager";
 
-import { CommandBase } from "@infinigrow/demo-app/src/core/command-base";
+import { CommandBase } from "@infinigrow/commander/command-base";
 
-import { withCommands } from "@infinigrow/demo-app/src/core/with-commands";
+import { withCommands } from "@infinigrow/commander/with-commands";
 
-import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/demo-app/src/core/use-commands";
+import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
 
 import Channel from "@infinigrow/demo-app/src/modules/channel/channel";
 import ChannelInternal from "@infinigrow/demo-app/src/modules/channel/channel-internal";
@@ -18,7 +18,7 @@ import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/ac
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 import type { ChannelsProps, ChannelComponent } from "@infinigrow/demo-app/src/modules/channel/channel";
 
-import type { CommandFunctionComponent } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 export function toAccordionItem(
     channel: ChannelComponent,
@@ -69,7 +69,7 @@ function bindAccordionInteractions(
     setChannelsState: React.Dispatch<React.SetStateAction<ChannelComponent[]>>,
 ) {
     const channelsCommands = useComponentCommands( "Modules/Channels" ),
-        addChannelCommand = useAnyComponentCommands( "AddChannel" );
+        addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
@@ -115,8 +115,8 @@ function bindAccordionInteractions(
         } );
 
         const AddChannelCommand = {
-            commandName: "AddChannel",
-            componentName: "AddChannel",
+            commandName: "App/AddChannel",
+            componentName: "App/AddChannel",
             componentNameUnique: addChannelCommand[ 0 ].componentNameUnique,
         };
 

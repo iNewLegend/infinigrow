@@ -1,3 +1,20 @@
 {
-    "name": "@infinigrow/commander"
+    "name": "@infinigrow/commander",
+    "type": "module",
+    "exports": {
+        "./command-base": "./src/command-base.ts",
+        "./commands-manager": "./src/commands-manager.ts",
+        "./commands-context": "./src/commands-context.ts",
+        "./commands-provider": "./src/commands-provider.tsx",
+        "./with-commands": "./src/with-commands.tsx",
+        "./use-commands": "./src/use-commands.tsx",
+        "./types": "./src/types.ts"
+    },
+    "devDependencies": {
+        "vite": "^5.0.6"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
 }

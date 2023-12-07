@@ -1,19 +1,19 @@
 import React from "react";
 
+import { CommandBase } from "@infinigrow/commander/command-base";
+
+import { withCommands } from "@infinigrow/commander/with-commands";
+import { useComponentCommands } from "@infinigrow/commander/use-commands";
+
 import "@infinigrow/demo-app/src/ui-command-able/accordion/_accordion.scss";
 
 import { UIThemeAccordion } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import { CommandBase } from "@infinigrow/demo-app/src/core/command-base.ts";
-
-import { withCommands } from "@infinigrow/demo-app/src/core/with-commands";
-import { useComponentCommands } from "@infinigrow/demo-app/src/core/use-commands";
-
 import type { UIThemeAccordionCollapseStates } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
 
-import type { CommandFunctionComponent } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 type AccordionItemComponent = React.ReactComponentElement<typeof AccordionItem>;
 type AccordionUIComponent = React.ReactComponentElement<typeof UIThemeAccordion>;

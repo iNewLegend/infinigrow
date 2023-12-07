@@ -1,14 +1,19 @@
 import React from "react";
 
-import { GET_INTERNAL_SYMBOL, GET_INTERNAL_MATCH_SYMBOL } from "@infinigrow/demo-app/src/core/_internal/constants.ts";
+// eslint-disable-next-line no-restricted-imports
+import core from "./_internal/core";
 
-import { ComponentIdContext } from "@infinigrow/demo-app/src/core/commands-context.ts";
+// eslint-disable-next-line no-restricted-imports
+import {
+    GET_INTERNAL_SYMBOL,
+    GET_INTERNAL_MATCH_SYMBOL
+} from "./_internal/constants.ts";
 
-import commandsManager from "@infinigrow/demo-app/src/core/commands-manager.ts";
+import { ComponentIdContext } from "@infinigrow/commander/commands-context";
 
-import core from "@infinigrow/demo-app/src/core/_internal/core.ts";
+import commandsManager from "@infinigrow/commander/commands-manager";
 
-import type { CommandArgs } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandArgs } from "@infinigrow/commander/types";
 
 /**
  * Custom hook to create a command handler for a specific command.

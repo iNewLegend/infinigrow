@@ -1,15 +1,17 @@
-import core from "@infinigrow/demo-app/src/core/_internal/core.ts";
+// eslint-disable-next-line no-restricted-imports
+import core from "./_internal/core.ts";
 
-import { GET_INTERNAL_SYMBOL } from "@infinigrow/demo-app/src/core/_internal/constants.ts";
+// eslint-disable-next-line no-restricted-imports
+import { GET_INTERNAL_SYMBOL } from "./_internal/constants";
 
 import type {
     CommandArgs,
     CommandNewInstanceWithArgs,
     CommandRegisterArgs,
-    CommandIdArgs
-} from "@infinigrow/demo-app/src/core/types.ts";
+    CommandIdArgs, CommandSingleComponentContext
+} from "@infinigrow/commander/types";
 
-import type { CommandBase } from "@infinigrow/demo-app/src/core/command-base.ts";
+import type { CommandBase } from "@infinigrow/commander/command-base";
 
 class CommandsManager {
     private commands: {
@@ -95,7 +97,7 @@ class CommandsManager {
             throw new Error( `Component '${ componentName }' not registered` );
         }
 
-        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique );
+        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique ) as CommandSingleComponentContext;
 
         // Check if id exist within the component context
         if ( ! singleComponentContext.commands[ commandName ] ) {

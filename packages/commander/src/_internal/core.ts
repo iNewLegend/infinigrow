@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {
     REGISTER_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
@@ -5,11 +6,11 @@ import {
     LINK_COMPONENTS,
     SET_TO_CONTEXT,
     GET_INTERNAL_MATCH_SYMBOL
-} from "@infinigrow/demo-app/src/core/_internal/constants.ts";
+} from "./constants.ts";
 
 import type React from "react";
 
-import type { CommandSingleComponentContext } from "@infinigrow/demo-app/src/core/types.ts";
+import type { CommandSingleComponentContext } from "@infinigrow/commander/types";
 
 import type { EventEmitter } from "events";
 

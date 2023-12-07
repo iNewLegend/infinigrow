@@ -3,7 +3,7 @@ import type { EventEmitter } from "events";
 import type {
     CommandArgs,
     CommandRegisterArgs
-} from "@infinigrow/demo-app/src/core/types.ts";
+} from "@infinigrow/commander/types";
 
 /**
  * Each created command is registered within the commands manager, and the instance created only once per command.
