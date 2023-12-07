@@ -1,17 +1,15 @@
 import React from "react";
 
-import commandsManager from "@infinigrow/commander/commands-manager";
-
 import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
+import { useComponentCommands } from "@infinigrow/commander/use-commands";
 
-import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
+import { channelInteractions } from "@infinigrow/demo-app/src/components/channels/channel-interactions";
 
 import ChannelItem from "@infinigrow/demo-app/src/components/channels/channel-item.tsx";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
-
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 import type { ChannelListProps, ChannelItemComponent } from "@infinigrow/demo-app/src/components/channels/channel-types";
@@ -61,77 +59,6 @@ export function toAccordionItem(
                           key={ "channel-" + channel.props.id + "-accordion-item-" + index.toString() }/>;
 }
 
-function bindAccordionInteractions(
-    channels: any,
-    setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
-    setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
-) {
-    const channelsCommands = useComponentCommands( "App/ChannelList" ),
-        addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
-
-    // Once each accordion item is rendered, we can attach selection handlers
-    React.useEffect( () => {
-        // Hook local actions
-        channelsCommands.hook( "App/ChannelList/EditRequest", ( args: any ) => {
-            // On edit request, select the channel (trigger accordion item selection)
-            setSelected( { [ args.channel.props.id ]: true } );
-
-            const accordionItemCommands = useAnyComponentCommands( "UI/AccordionItem" );
-
-            // Enable edit mode on the accordion item
-            accordionItemCommands.some( ( command ) => {
-                if ( command.props.itemKey === args.channel.props.id ) {
-                    const editAbleId = {
-                        commandName: "UI/AccordionItem/EditableTitle",
-                        componentName: "UI/AccordionItem",
-                        componentNameUnique: command.componentNameUnique,
-                    };
-
-                    const onTitleChangedId = {
-                        commandName: "UI/AccordionItem/OnTitleChanged",
-                        componentName: "UI/AccordionItem",
-                        componentNameUnique: command.componentNameUnique,
-                    };
-
-                    // Hook on title changed
-                    commandsManager.hook( onTitleChangedId, ( { title } ) => {
-                        // TODO: Update some state
-                        console.log( `Title changed to: ${ title }` );
-                    } );
-
-                    commandsManager.run( editAbleId, { state: true } );
-
-                    return true;
-                }
-            } );
-
-        } );
-
-        channelsCommands.hook( "App/ChannelList/Remove", ( args: any ) => {
-            // Remove the channel from the list
-            setChannelsState( ( channels ) => channels.filter( ( channel ) => channel.props.id !== args.channel.props.id ) );
-        } );
-
-        const AddChannelCommand = {
-            commandName: "App/AddChannel",
-            componentName: "App/AddChannel",
-            componentNameUnique: addChannelCommand[ 0 ].componentNameUnique,
-        };
-
-        commandsManager.hook( AddChannelCommand, () => {
-            setChannelsState( ( channels ) => [ ... channels,
-                // @ts-ignore
-                <ChannelItem key={ Math.random() } id={ Math.random() } name={"New Channel" + channels.length } icon={channels[0].props.icon} />
-            ] );
-        } );
-
-        return () => {
-            // Since we are using `useAnyComponentCommands` we have to unhook manually
-            commandsManager.unhook( AddChannelCommand );
-        };
-    }, [] );
-}
-
 export const ChannelList: React.FC<ChannelListProps> = ( props ) => {
     let channels: ChannelItemComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
@@ -146,11 +73,10 @@ export const ChannelList: React.FC<ChannelListProps> = ( props ) => {
 
     const channelsCommands = useComponentCommands( "App/ChannelList" );
 
-    bindAccordionInteractions(
-        channels,
+    channelInteractions( {
         setSelected,
-        setChannelsState,
-    );
+        setChannelsState
+    } );
 
     return (
         <Accordion selected={ selected } setSelected={ setSelected }>
