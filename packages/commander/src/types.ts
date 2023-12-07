@@ -12,7 +12,7 @@ import type { EventEmitter } from "events";
 import type { CommandBase } from "@infinigrow/commander/command-base";
 
 // Sugar, eg `ComponentType.getName` not `ComponentInstance`
-export interface CommandFunctionComponent<TProps = any> extends React.FC<TProps>{
+export interface CommandFunctionComponent<TProps> extends React.FC<TProps> {
     // Those methods always implemented "under the hood"
     getName?(): string;
 }

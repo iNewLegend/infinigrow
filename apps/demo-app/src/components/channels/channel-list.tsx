@@ -8,20 +8,18 @@ import { withCommands } from "@infinigrow/commander/with-commands";
 
 import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
 
-import Channel from "@infinigrow/demo-app/src/components/channel/channel";
-import ChannelInternal from "@infinigrow/demo-app/src/components/channel/channel-internal";
+import ChannelItem from "@infinigrow/demo-app/src/components/channels/channel-item.tsx";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
-import type { ChannelsProps, ChannelComponent } from "@infinigrow/demo-app/src/components/channel/channel";
+import type { ChannelListProps, ChannelItemComponent } from "@infinigrow/demo-app/src/components/channels/channel-types";
 
-import type { CommandFunctionComponent } from "@infinigrow/commander/types";
+import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 export function toAccordionItem(
-    channel: ChannelComponent,
+    channel: ChannelItemComponent,
     channelsCommands: ReturnType<typeof useComponentCommands>,
     index: number,
 ): React.ReactComponentElement<typeof AccordionItem> {
@@ -33,7 +31,7 @@ export function toAccordionItem(
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
         itemKey: channel.props.id,
 
-        children: <ChannelInternal { ... channelInternalProps } key={ channel.props.id }/>,
+        children: <ChannelItem { ... channelInternalProps } key={ channel.props.id }/>,
         heading: {
             title: channel.props.name,
             icon: channel.props.icon,
@@ -42,7 +40,7 @@ export function toAccordionItem(
             edit: {
                 label: "Edit",
                 action: () => channelsCommands.run(
-                    "App/Channels/EditRequest",
+                    "App/ChannelList/EditRequest",
                     { channel, }
                 ),
             },
@@ -50,7 +48,7 @@ export function toAccordionItem(
                 label: "Remove",
                 color: "danger",
                 action: () => channelsCommands.run(
-                    "App/Channels/Remove",
+                    "App/ChannelList/Remove",
                     { channel, }
                 ),
             },
@@ -66,15 +64,15 @@ export function toAccordionItem(
 function bindAccordionInteractions(
     channels: any,
     setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
-    setChannelsState: React.Dispatch<React.SetStateAction<ChannelComponent[]>>,
+    setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
 ) {
-    const channelsCommands = useComponentCommands( "App/Channels" ),
+    const channelsCommands = useComponentCommands( "App/ChannelList" ),
         addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
         // Hook local actions
-        channelsCommands.hook( "App/Channels/EditRequest", ( args: any ) => {
+        channelsCommands.hook( "App/ChannelList/EditRequest", ( args: any ) => {
             // On edit request, select the channel (trigger accordion item selection)
             setSelected( { [ args.channel.props.id ]: true } );
 
@@ -109,7 +107,7 @@ function bindAccordionInteractions(
 
         } );
 
-        channelsCommands.hook( "App/Channels/Remove", ( args: any ) => {
+        channelsCommands.hook( "App/ChannelList/Remove", ( args: any ) => {
             // Remove the channel from the list
             setChannelsState( ( channels ) => channels.filter( ( channel ) => channel.props.id !== args.channel.props.id ) );
         } );
@@ -123,7 +121,7 @@ function bindAccordionInteractions(
         commandsManager.hook( AddChannelCommand, () => {
             setChannelsState( ( channels ) => [ ... channels,
                 // @ts-ignore
-                <Channel key={ Math.random() } id={ Math.random() } name={"New Channel" + channels.length } icon={channels[0].props.icon} />
+                <ChannelItem key={ Math.random() } id={ Math.random() } name={"New Channel" + channels.length } icon={channels[0].props.icon} />
             ] );
         } );
 
@@ -134,28 +132,19 @@ function bindAccordionInteractions(
     }, [] );
 }
 
-const Channels: CommandFunctionComponent<ChannelsProps> = ( props ) => {
-    let channels: ChannelComponent[] = Array.isArray( props.channels ) ? props.channels : [ props.channels ];
-
-    // If `ReactFragment` is used as children, then pop it out.
-    if ( channels.length === 1 && channels[ 0 ].type === React.Fragment ) {
-        channels = channels[ 0 ].props.children! as ChannelComponent[];
-    }
+export const ChannelList: React.FC<ChannelListProps> = ( props ) => {
+    let channels: ChannelItemComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
     // Helps to detect development errors.
-    if ( channels.some( ( child ) => child.type !== Channel ) ) {
-        throw new Error( `<${ Channels.name }> can accept only <${ Channel.name }> as children` );
+    if ( channels.some( ( child ) => child.type !== ChannelItem ) ) {
+        throw new Error( `<${ ChannelList.name }> can accept only <${ ChannelItem.name }> as children` );
     }
 
     const [ selected, setSelected ] = React.useState<{ [ key: string ]: boolean }>( {} );
 
-    const [ channelsState, setChannelsState ] = React.useState<ChannelComponent[]>( channels );
+    const [ channelsState, setChannelsState ] = React.useState<ChannelItemComponent[]>( channels );
 
-    const channelsCommands = useComponentCommands( "App/Channels" );
-
-    function renderAccordionItem( channel: ChannelComponent, index: number ) {
-        return toAccordionItem( channel, channelsCommands, index );
-    }
+    const channelsCommands = useComponentCommands( "App/ChannelList" );
 
     bindAccordionInteractions(
         channels,
@@ -163,24 +152,22 @@ const Channels: CommandFunctionComponent<ChannelsProps> = ( props ) => {
         setChannelsState,
     );
 
-    const children = channelsState.map( renderAccordionItem );
-
     return (
         <Accordion selected={ selected } setSelected={ setSelected }>
-            { children }
+            { channelsState.map( ( i, index ) => toAccordionItem( i, channelsCommands, index ) ) }
         </Accordion>
     );
 };
 
-const $$ = withCommands( "App/Channels", Channels, [
+const $$ = withCommands( "App/ChannelList", ChannelList, [
     class EditRequest extends CommandBase {
         public static getName() {
-            return "App/Channels/EditRequest";
+            return "App/ChannelList/EditRequest";
         }
     },
     class Remove extends CommandBase {
         public static getName() {
-            return "App/Channels/Remove";
+            return "App/ChannelList/Remove";
         }
     }
 ] );

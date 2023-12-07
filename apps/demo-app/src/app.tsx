@@ -11,8 +11,8 @@ import AffiliateProgramPNG from "@infinigrow/demo-app/src/ui-theme/images/affili
 
 import Layout from "@infinigrow/demo-app/src/ui-layout/layout";
 
-import Channels from "@infinigrow/demo-app/src/components/channels/channels";
-import Channel from "@infinigrow/demo-app/src/components/channel/channel";
+import Channels from "@infinigrow/demo-app/src/components/channels/channel-list";
+import Channel from "@infinigrow/demo-app/src/components/channels/channel-item";
 
 import "@infinigrow/demo-app/src/app.scss";
 
@@ -27,20 +27,18 @@ function Main() {
             cursor: "cursor",
         } }>
             <Tab title="Tab 1">
-                <Channels channels={
-                    <>
-                        <Channel
-                            id="paid-reviews"
-                            name="Paid reviews"
-                            icon={ AffiliateProgramPNG }
-                        />
-                        <Channel
-                            id="paid-reviews2"
-                            name="Paid reviews 2"
-                            icon={ AffiliateProgramPNG }
-                        />
-                    </>
-                }/>
+                <Channels>
+                    <Channel
+                        id="paid-reviews"
+                        name="Paid reviews"
+                        icon={ AffiliateProgramPNG }
+                    />
+                    <Channel
+                        id="paid-reviews2"
+                        name="Paid reviews 2"
+                        icon={ AffiliateProgramPNG }
+                    />
+                </Channels>
             </Tab>
             <Tab title="Tab 2">
                 <Card>

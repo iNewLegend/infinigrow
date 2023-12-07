@@ -6,7 +6,10 @@ import "@infinigrow/demo-app/src/ui-theme/accordion/_ui-theme-accordion.scss";
 
 import { ArrowDown } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
-import { accordionHandleSelection, accordionHandleExternalSelection } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-handle-selection";
+import {
+    accordionHandleSelection,
+    accordionHandleExternalSelection
+} from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-handle-selection";
 
 import type {
     UIThemeAccordionItemProps,
@@ -57,8 +60,6 @@ const UIThemeAccordionHeading = ( props: Omit<UIThemeAccordionItemProps, "childr
 const UIThemeAccordionItemCollapse = ( props: {
     children: any,
     height: number,
-    selected: UIThemeAccordionItemProps["selected"],
-    setSelected: UIThemeAccordionItemProps["setSelected"],
     collapsedState: UIThemeAccordionCollapseStates
     collapsedStateRef: React.MutableRefObject<HTMLDivElement | null>,
     setCollapsedState: React.Dispatch<React.SetStateAction<UIThemeAccordionCollapseStates>>,
@@ -153,8 +154,6 @@ const UIThemeAccordionItemContent = ( props: UIThemeAccordionItemProps ) => {
         collapsedState,
         collapsedStateRef,
         setCollapsedState,
-        selected: props.selected,
-        setSelected: props.setSelected,
     };
 
     return ( <UIThemeAccordionItemCollapse { ... args } >
@@ -187,65 +186,62 @@ export const UIThemeAccordionItem = ( props: UIThemeAccordionItemProps ) => {
     );
 };
 
-export const UIThemeAccordion = ( props: UIThemeAccordionProps ) => {
+const NormalizeAccordionItem = ( props: any ) => {
+    const { item, selected, setSelected, setIsInternalChange, sharedProps } = props;
+
+    const ref = React.createRef<HTMLDivElement>();
+
+    let [ collapsedState, setCollapsedState ] = React.useState<UIThemeAccordionCollapseStates>( "initial" );
+
+    collapsedState = item.props.collapsedState || collapsedState;
+    setCollapsedState = item.props.setCollapsedState || setCollapsedState;
+
+    const itemProps: Required<UIThemeAccordionItemProps> = {
+        ... item.props,
+
+        collapsedState,
+        setCollapsedState,
+
+        key: item.props.itemKey,
+    };
+
+    itemProps.onClick = ( e ) => accordionHandleSelection( e, ref, {
+        key: itemProps.itemKey.toString(),
+
+        collapsedState,
+        setCollapsedState,
+
+        selected,
+        setSelected,
+
+        // Passing `api` onClick handler, `accordionHandleSelection` will handle the call to it.
+        onClick: props.onClick,
+
+        setIsInternalChange
+    }, );
+
+    sharedProps[ itemProps.itemKey.toString() ] = itemProps;
+
+    return (
+        <div className="group accordion-item" data-collapsed={ "initial" } ref={ ref }>
+            { <item.type { ... itemProps }/> }
+        </div>
+    );
+};
+
+export const UIThemeAccordion = React.memo( ( props: UIThemeAccordionProps ) => {
     let { children } = props;
 
-    let [ selected, setSelected ] = React.useState<{ [ key: string ]: boolean }>( {} );
+    let [ selectedInternal, setSelectedInternal ] = React.useState<{ [ key: string ]: boolean }>( {} );
+
+    const selected = props.selected || selectedInternal,
+        setSelected = props.setSelected || setSelectedInternal;
 
     const [ prevSelected, setPrevSelected ] = React.useState<typeof selected>( {} );
 
-    selected = props.selected || selected;
-    setSelected = props.setSelected || setSelected;
-
     const [ isInternalChange, setIsInternalChange ] = React.useState<{ [ key: string ]: boolean }>( {} );
 
-    const sharedProps = React.useMemo<{[ key: string ]: any }>( () => ( {} ), [] );
-
-    const NormalizeAccordionItem = ( props: any ) => {
-        const { item } = props;
-
-        const ref = React.createRef<HTMLDivElement>();
-
-        let [ collapsedState, setCollapsedState ] = React.useState<UIThemeAccordionCollapseStates>( "initial" );
-
-        collapsedState = item.props.collapsedState || collapsedState;
-        setCollapsedState = item.props.setCollapsedState || setCollapsedState;
-
-        const itemProps: Required<UIThemeAccordionItemProps> = {
-            ... item.props,
-
-            collapsedState,
-            setCollapsedState,
-
-            selected,
-            setSelected,
-
-            key: item.props.itemKey,
-        };
-
-        itemProps.onClick = ( e ) => accordionHandleSelection( e, ref, {
-            key: itemProps.itemKey.toString(),
-
-            collapsedState,
-            setCollapsedState,
-
-            selected,
-            setSelected,
-
-            // Passing `api` onClick handler, `accordionHandleSelection` will handle the call to it.
-            onClick: props.onClick,
-
-            setIsInternalChange
-        }, );
-
-        sharedProps[ itemProps.itemKey.toString() ] = itemProps;
-
-        return (
-            <div className="group accordion-item" data-collapsed={ "initial" } ref={ ref }>
-                { <item.type { ... itemProps }/> }
-            </div>
-        );
-    };
+    const sharedProps = React.useMemo<{ [ key: string ]: any }>( () => ( {} ), [] );
 
     accordionHandleExternalSelection( {
         selected,
@@ -262,14 +258,18 @@ export const UIThemeAccordion = ( props: UIThemeAccordionProps ) => {
         sharedProps,
     } );
 
-    const MemorizedAccordion = React.useMemo( () => (
-        <div className="accordion">
-            { children.map( ( item, index ) => <NormalizeAccordionItem key={ index } item={ item }
-                                                                       onClick={ props.onClick }/> ) }
-        </div>
-    ), [ children.length ] );
-
     return (
-        MemorizedAccordion
+        <div className="accordion">
+            { children.map( ( item ) =>
+                <NormalizeAccordionItem
+                    key={ item.props.itemKey }
+                    item={ item }
+                    selected={ selected }
+                    setSelected={ setSelected }
+                    sharedProps={ sharedProps }
+                    setIsInternalChange={ setIsInternalChange }
+                    onClick={ props.onClick }/>
+            ) }
+        </div>
     );
-};
+} );
