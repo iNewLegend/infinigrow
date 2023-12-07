@@ -10,7 +10,9 @@ import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/acco
 
 import { UIThemeAccordionItem } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
 
-import type { UIThemeAccordionItemProps } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types.ts";
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
+
+import type { UIThemeAccordionItemProps } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types";
 
 export interface AccordionItemProps extends Omit<UIThemeAccordionItemProps, "heading"> {
     heading: {
@@ -91,7 +93,7 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
     </span>;
 };
 
-const AccordionItem: React.FC<AccordionItemProps> = ( props ) => {
+const AccordionItem: CommandFunctionComponent<AccordionItemProps> = ( props ) => {
     const { itemKey, heading = {}, menu = {} } = props;
 
     const onAction = ( key: React.Key ) => {

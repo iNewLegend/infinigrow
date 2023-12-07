@@ -12,6 +12,8 @@ import ChannelItem from "@infinigrow/demo-app/src/components/channels/channel-it
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
+
 import type { ChannelListProps, ChannelItemComponent } from "@infinigrow/demo-app/src/components/channels/channel-types";
 
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
@@ -59,7 +61,7 @@ export function toAccordionItem(
                           key={ "channel-" + channel.props.id + "-accordion-item-" + index.toString() }/>;
 }
 
-export const ChannelList: React.FC<ChannelListProps> = ( props ) => {
+export const ChannelList: CommandFunctionComponent<ChannelListProps> = ( props ) => {
     let channels: ChannelItemComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
     // Helps to detect development errors.

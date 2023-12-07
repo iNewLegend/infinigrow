@@ -12,7 +12,7 @@ import { Plus } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
-const AddChannel: CommandFunctionComponent = () => {
+const AddChannel: CommandFunctionComponent<void> = () => {
     const command = useCommand( "App/AddChannel" );
 
     return (
