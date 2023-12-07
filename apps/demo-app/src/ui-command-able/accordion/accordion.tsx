@@ -11,7 +11,7 @@ import { UIThemeAccordion } from "@infinigrow/demo-app/src/ui-theme/accordion/ui
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import type { UIThemeAccordionCollapseStates } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
+import type { UIThemeAccordionCollapseStates } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 

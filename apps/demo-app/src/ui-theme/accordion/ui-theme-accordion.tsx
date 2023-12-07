@@ -2,66 +2,22 @@ import React from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 
-import { ArrowDown } from "@infinigrow/demo-app/src/ui-theme/symbols";
-
 import "@infinigrow/demo-app/src/ui-theme/accordion/_ui-theme-accordion.scss";
 
-/**
- * Type for the possible states of the Accordion collapse
- */
-export type UIThemeAccordionCollapseStates = "initial" | "detached" | "attached" | "re-render";
+import { ArrowDown } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
-/**
- * Type for the properties of the `ui/accordion` component
- */
-export type UIThemeAccordionItemProps = {
-    itemKey: React.Key,
+import { accordionHandleSelection, accordionHandleExternalSelection } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-handle-selection";
 
-    children: React.ReactNode,
-
-    heading: {
-        title: string,
-        icon?: HTMLImageElement["src"],
-        iconAlt?: string,
-        extra?: React.ReactNode,
-    }
-
-    onClick?: ( event: React.MouseEvent<HTMLButtonElement>, key: string, state: UIThemeAccordionCollapseStates, signal?: AbortController ) => void,
-
-    // Per item state
-    collapsedState: UIThemeAccordionCollapseStates,
-    setCollapsedState: React.Dispatch<React.SetStateAction<UIThemeAccordionCollapseStates>>,
-
-    // Global state
-    // `selected` is a map of the selected items, that sets the selected items, controlled (to way binding) `selected` is read/write
-    // using `setSelected` and `selected` props.
-    selected?: {
-        [ key: string ]: boolean
-    },
-
-    setSelected?: React.Dispatch<React.SetStateAction<{
-        [ key: string ]: boolean
-    }>>,
-};
-
-type UIThemeAccordionItemPropsWithoutChildren = Omit<UIThemeAccordionItemProps, "children">;
-
-type UIThemeAccordionProps = {
-    children: React.ReactComponentElement<typeof UIThemeAccordionItem>[]
-
-    selected?: UIThemeAccordionItemProps["selected"],
-    setSelected?: UIThemeAccordionItemProps["setSelected"],
-
-    // `onClick` api can only abort the click event, not trigger it.
-    onClick?: ( event: React.MouseEvent<HTMLButtonElement>, key: string, state: UIThemeAccordionCollapseStates, signal?: AbortController ) => void,
-
-    onSelectionChanged?: () => void,
-}
+import type {
+    UIThemeAccordionItemProps,
+    UIThemeAccordionProps,
+    UIThemeAccordionCollapseStates
+} from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types.ts";
 
 /**
  * Function UIThemeAccordionHeading()
  */
-const UIThemeAccordionHeading = ( props: UIThemeAccordionItemPropsWithoutChildren & {
+const UIThemeAccordionHeading = ( props: Omit<UIThemeAccordionItemProps, "children"> & {
     children: UIThemeAccordionItemProps["heading"]["title"]
 } ) => {
     const { children } = props,
@@ -92,7 +48,7 @@ const UIThemeAccordionHeading = ( props: UIThemeAccordionItemPropsWithoutChildre
 
 /**
  * Function UIThemeAccordionItemCollapse() : The AccordionItemCollapse component follows a common pattern for accordion components
- * in React: maintaining a state that determines the collapsed/expanded status of the accordion item.
+ * in React: maintaining a state determines the collapsed/expanded status of the accordion item.
  * The component uses the useState and useEffect React hooks to handle state and side effects respectively.
  *
  * The component uses the framer-motion library to animate the accordion's opening and closing.
@@ -109,15 +65,7 @@ const UIThemeAccordionItemCollapse = ( props: {
 } ): React.JSX.Element => {
     const { children, height, collapsedState, collapsedStateRef, setCollapsedState } = props;
 
-    const [ shouldRerender, _setShouldRerender ] = React.useState( "__INITIAL__" );
     const [ shouldRenderCollapse, setShouldRenderCollapse ] = React.useState<null | boolean>( null );
-
-    const setShouldRerender = ( shouldRender: boolean ) => {
-        if ( ! shouldRender ) {
-            return;
-        }
-        _setShouldRerender( Math.random() );
-    };
 
     const memoCollapsedStateChanged = React.useMemo( () => {
         return collapsedState;
@@ -143,7 +91,6 @@ const UIThemeAccordionItemCollapse = ( props: {
                 setShouldRenderCollapse( false );
         }
 
-        _setShouldRerender( "__INITIAL__" );
     }, [ collapsedState ] );
 
     const Component = () => {
@@ -222,7 +169,7 @@ export const UIThemeAccordionItem = ( props: UIThemeAccordionItemProps ) => {
         <>
             <h2 className="accordion-heading">
                 <button className="accordion-button" onClick={ () => {
-                    return props.onClick?.( event, props.itemKey, props.collapsedState );
+                    return props.onClick?.( event as any, props.itemKey.toString(), props.collapsedState );
                 } }>
                     <UIThemeAccordionHeading { ... propsWithoutChildren }>
                         { props.heading.title }
@@ -238,123 +185,6 @@ export const UIThemeAccordionItem = ( props: UIThemeAccordionItemProps ) => {
             </div>
         </>
     );
-};
-
-/**
- * Function accordionHandleSelection() Handles the selection of an accordion item.
- */
-const accordionHandleSelection = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    ref: React.RefObject<HTMLDivElement>,
-    args: {
-        key: string,
-        collapsedState: UIThemeAccordionCollapseStates,
-        setCollapsedState: React.Dispatch<React.SetStateAction<UIThemeAccordionCollapseStates>>,
-        selected: UIThemeAccordionItemProps["selected"],
-        setSelected: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-        onClick: UIThemeAccordionItemProps["onClick"],
-        setIsInternalChange: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-    }
-) => {
-    if ( ! ref.current ) {
-        return;
-    }
-
-    const target = ref.current;
-
-    const { onClick, collapsedState, setCollapsedState, selected, setSelected, setIsInternalChange } = args;
-
-    let state = collapsedState === "detached" ? "attached" : "detached" as UIThemeAccordionCollapseStates;
-
-    const controller = new AbortController();
-
-    if ( ! args.key ) {
-        throw new Error( "Accordion item key is not defined" );
-    }
-
-    onClick?.( event, args.key, state, controller );
-
-    if ( controller.signal.aborted ) {
-        return;
-    }
-
-    /**
-     * Trigger accordion item selection
-     */
-    setCollapsedState( state );
-
-    setIsInternalChange( { [ args.key ]: true } );
-
-    // Update for external
-    setSelected( {
-        ... selected,
-        [ args.key ]: state === "attached"
-    } );
-
-    target.setAttribute( "data-collapsed", state );
-};
-
-/**
- * Function accordionHandleExternalSelection() Since state can be created outside of the component, it is necessary to implement a some sort of
- * solution.
- */
-const accordionHandleExternalSelection = ( args: {
-    selected: NonNullable<UIThemeAccordionItemProps["selected"]>,
-    setSelected: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-
-    prevSelected: NonNullable<UIThemeAccordionItemProps["selected"]>,
-    setPrevSelected: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-
-    isInternalChange: NonNullable<UIThemeAccordionItemProps["selected"]>,
-    setIsInternalChange: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-
-    onSelectionChanged: NonNullable<UIThemeAccordionProps["onSelectionChanged"]>,
-
-    sharedProps: { [ key: string ]: UIThemeAccordionItemProps },
-} ) => {
-    const isSelectionChanged = React.useMemo( () => {
-        // Convert to array and compare
-        return JSON.stringify( Object.keys( args.prevSelected ) ) !== JSON.stringify( Object.keys( args.selected ) );
-    }, [ args.selected ] );
-
-    React.useEffect( () => {
-        if ( args.onSelectionChanged ) {
-            setTimeout( () => {
-                args.onSelectionChanged!();
-            } );
-        }
-
-        if ( isSelectionChanged ) {
-            // If all cleared, then clear all
-            if ( Object.keys( args.selected ).length === 0 ) {
-                Object.values( args.sharedProps ).forEach( ( props ) => {
-                    // If attached, then detach
-                    props.setCollapsedState( props.collapsedState === "attached" ? "detached" : "attached" );
-                } );
-            }
-
-            // Update all items according to their selection state
-            Object.values( args.sharedProps ).forEach( ( props ) => {
-                const key = props.itemKey as string;
-
-                // If internal key, then ignore
-                if ( args.isInternalChange[ key ] ) {
-                    const clone = { ... args.isInternalChange };
-
-                    delete clone[ key ];
-
-                    args.setIsInternalChange( clone );
-
-                    return;
-                }
-
-                // If attached, then detach
-                props.setCollapsedState( args.selected[ key ] ? "attached" : "detached" );
-            } );
-        }
-
-        args.setPrevSelected( args.selected );
-    }, [ args.selected ] );
 };
 
 export const UIThemeAccordion = ( props: UIThemeAccordionProps ) => {
@@ -394,7 +224,7 @@ export const UIThemeAccordion = ( props: UIThemeAccordionProps ) => {
         };
 
         itemProps.onClick = ( e ) => accordionHandleSelection( e, ref, {
-            key: itemProps.key,
+            key: itemProps.itemKey.toString(),
 
             collapsedState,
             setCollapsedState,
@@ -408,7 +238,7 @@ export const UIThemeAccordion = ( props: UIThemeAccordionProps ) => {
             setIsInternalChange
         }, );
 
-        sharedProps[ itemProps.key ] = itemProps;
+        sharedProps[ itemProps.itemKey.toString() ] = itemProps;
 
         return (
             <div className="group accordion-item" data-collapsed={ "initial" } ref={ ref }>

@@ -8,9 +8,9 @@ import { useCommand } from "@infinigrow/commander/use-commands";
 
 import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item-menu";
 
-import { UIThemeAccordionItem, } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
+import { UIThemeAccordionItem } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
 
-import type { UIThemeAccordionItemProps } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
+import type { UIThemeAccordionItemProps } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types.ts";
 
 export interface AccordionItemProps extends Omit<UIThemeAccordionItemProps, "heading"> {
     heading: {
