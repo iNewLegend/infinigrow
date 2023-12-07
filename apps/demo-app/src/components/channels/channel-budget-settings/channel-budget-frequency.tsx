@@ -24,9 +24,11 @@ const DEFAULT_PROPS: Partial<SelectProps> = {
         mainWrapper: "wrapper",
         innerWrapper: "inner"
     },
+    multiple: false,
     size: "sm",
     variant: "bordered",
     radius: "none",
+    disallowEmptySelection: true,
 };
 
 export function getChannelBudgetFrequencyLabel( frequency: ChannelBudgetFrequencyPossibleValues ) {
