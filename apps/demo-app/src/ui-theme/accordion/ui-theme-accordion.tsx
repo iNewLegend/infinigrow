@@ -243,6 +243,13 @@ export const UIThemeAccordion = React.memo( ( props: UIThemeAccordionProps ) => 
 
     const sharedProps = React.useMemo<{ [ key: string ]: any }>( () => ( {} ), [] );
 
+    // Remove deleted sharedProps
+    Object.keys( sharedProps ).forEach( ( key ) => {
+        if ( ! children.find( ( item ) => item.props.itemKey.toString() === key ) ) {
+            delete sharedProps[ key ];
+        }
+    } );
+
     accordionHandleExternalSelection( {
         selected,
         setSelected,
