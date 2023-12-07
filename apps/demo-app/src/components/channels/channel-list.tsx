@@ -3,6 +3,7 @@ import React from "react";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
+
 import { useComponentCommands } from "@infinigrow/commander/use-commands";
 
 import { channelInteractions } from "@infinigrow/demo-app/src/components/channels/channel-interactions";
@@ -10,7 +11,10 @@ import { channelInteractions } from "@infinigrow/demo-app/src/components/channel
 import ChannelItem from "@infinigrow/demo-app/src/components/channels/channel-item.tsx";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
+
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
+
+import "@infinigrow/demo-app/src/components/channels/_channels.scss";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 

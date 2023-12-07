@@ -111,7 +111,7 @@ const UIThemeAccordionItemCollapse = ( props: {
                     exit={ { maxHeight: 0 } }
                     transition={ { duration: 0.3 } }
                 >
-                    <div className="accordion-content px-5 py-4" ref={ collapsedStateRef }>
+                    <div className="accordion-content" ref={ collapsedStateRef }>
                         { children }
                     </div>
                 </motion.div>
