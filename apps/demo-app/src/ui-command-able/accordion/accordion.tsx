@@ -70,6 +70,7 @@ const Accordion: CommandFunctionComponent<AccordionProps> = ( props ) => {
 
             // If current selected is not the new selected, dissect the old and select the new.
             if ( Object.keys( selected ).length > 0 ) {
+
                 if ( ! Object.keys( selected ).find( i => i == key ) ) {
                     signal?.abort();
 

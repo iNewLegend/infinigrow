@@ -38,6 +38,8 @@ export type UIThemeAccordionItemProps = {
     setSelected?: React.Dispatch<React.SetStateAction<{
         [ key: string ]: boolean
     }>>,
+
+    setIsTransitioning?: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
 /**

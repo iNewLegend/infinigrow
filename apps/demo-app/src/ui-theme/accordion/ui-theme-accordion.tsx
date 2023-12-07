@@ -63,8 +63,9 @@ const UIThemeAccordionItemCollapse = ( props: {
     collapsedState: UIThemeAccordionCollapseStates
     collapsedStateRef: React.MutableRefObject<HTMLDivElement | null>,
     setCollapsedState: React.Dispatch<React.SetStateAction<UIThemeAccordionCollapseStates>>,
+    setIsTransitioning: React.Dispatch<React.SetStateAction<boolean>>
 } ): React.JSX.Element => {
-    const { children, height, collapsedState, collapsedStateRef, setCollapsedState } = props;
+    const { children, height, collapsedState, collapsedStateRef, setCollapsedState, setIsTransitioning } = props;
 
     const [ shouldRenderCollapse, setShouldRenderCollapse ] = React.useState<null | boolean>( null );
 
@@ -110,6 +111,8 @@ const UIThemeAccordionItemCollapse = ( props: {
                     animate={ { maxHeight: height, display: "block" } }
                     exit={ { maxHeight: 0 } }
                     transition={ { duration: 0.3 } }
+                    onAnimationStart={ () => setIsTransitioning( true ) }
+                    onAnimationComplete={ () => setIsTransitioning( false ) }
                 >
                     <div className="accordion-content" ref={ collapsedStateRef }>
                         { children }
@@ -154,6 +157,7 @@ const UIThemeAccordionItemContent = ( props: UIThemeAccordionItemProps ) => {
         collapsedState,
         collapsedStateRef,
         setCollapsedState,
+        setIsTransitioning: props.setIsTransitioning!,
     };
 
     return ( <UIThemeAccordionItemCollapse { ... args } >
@@ -187,7 +191,7 @@ export const UIThemeAccordionItem = ( props: UIThemeAccordionItemProps ) => {
 };
 
 const NormalizeAccordionItem = ( props: any ) => {
-    const { item, selected, setSelected, setIsInternalChange, sharedProps } = props;
+    const { item, selected, setSelected, sharedProps, isTransitioning, setIsTransitioning } = props;
 
     const ref = React.createRef<HTMLDivElement>();
 
@@ -201,6 +205,8 @@ const NormalizeAccordionItem = ( props: any ) => {
 
         collapsedState,
         setCollapsedState,
+
+        setIsTransitioning,
 
         key: item.props.itemKey,
     };
@@ -217,7 +223,7 @@ const NormalizeAccordionItem = ( props: any ) => {
         // Passing `api` onClick handler, `accordionHandleSelection` will handle the call to it.
         onClick: props.onClick,
 
-        setIsInternalChange
+        isTransitioning
     }, );
 
     sharedProps[ itemProps.itemKey.toString() ] = itemProps;
@@ -239,7 +245,7 @@ export const UIThemeAccordion = React.memo( ( props: UIThemeAccordionProps ) => 
 
     const [ prevSelected, setPrevSelected ] = React.useState<typeof selected>( {} );
 
-    const [ isInternalChange, setIsInternalChange ] = React.useState<{ [ key: string ]: boolean }>( {} );
+    const [ isTransitioning, setIsTransitioning ] = React.useState<boolean>( false );
 
     const sharedProps = React.useMemo<{ [ key: string ]: any }>( () => ( {} ), [] );
 
@@ -257,9 +263,6 @@ export const UIThemeAccordion = React.memo( ( props: UIThemeAccordionProps ) => 
         prevSelected,
         setPrevSelected,
 
-        isInternalChange,
-        setIsInternalChange,
-
         onSelectionChanged: props.onSelectionChanged!,
 
         sharedProps,
@@ -274,7 +277,8 @@ export const UIThemeAccordion = React.memo( ( props: UIThemeAccordionProps ) => 
                     selected={ selected }
                     setSelected={ setSelected }
                     sharedProps={ sharedProps }
-                    setIsInternalChange={ setIsInternalChange }
+                    isTransitioning={ isTransitioning }
+                    setIsTransitioning={ setIsTransitioning }
                     onClick={ props.onClick }/>
             ) }
         </div>

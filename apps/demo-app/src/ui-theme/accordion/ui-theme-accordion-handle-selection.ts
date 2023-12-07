@@ -19,16 +19,17 @@ export const accordionHandleSelection = (
         selected: UIThemeAccordionItemProps["selected"],
         setSelected: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
         onClick: UIThemeAccordionItemProps["onClick"],
-        setIsInternalChange: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
+        isTransitioning: boolean,
     }
 ) => {
-    if ( ! ref.current ) {
+    // TODO: Add block on transition if needed.
+    if ( ! ref.current /*|| args.isTransitioning */ ) {
         return;
     }
 
     const target = ref.current;
 
-    const { onClick, collapsedState, setCollapsedState, selected, setSelected, setIsInternalChange } = args;
+    const { onClick, collapsedState, setCollapsedState, selected, setSelected } = args;
 
     let state = collapsedState === "detached" ? "attached" : "detached" as UIThemeAccordionCollapseStates;
 
@@ -49,8 +50,6 @@ export const accordionHandleSelection = (
      */
     setCollapsedState( state );
 
-    setIsInternalChange( { [ args.key ]: true } );
-
     // Update for external
     setSelected( {
         ... selected,
@@ -70,9 +69,6 @@ export const accordionHandleExternalSelection = ( args: {
 
     prevSelected: NonNullable<UIThemeAccordionItemProps["selected"]>,
     setPrevSelected: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
-
-    isInternalChange: NonNullable<UIThemeAccordionItemProps["selected"]>,
-    setIsInternalChange: NonNullable<UIThemeAccordionItemProps["setSelected"]>,
 
     onSelectionChanged: NonNullable<UIThemeAccordionProps["onSelectionChanged"]>,
 
@@ -102,17 +98,6 @@ export const accordionHandleExternalSelection = ( args: {
             // Update all items according to their selection state
             Object.values( args.sharedProps ).forEach( ( props ) => {
                 const key = props.itemKey as string;
-
-                // If internal key, then ignore
-                if ( args.isInternalChange[ key ] ) {
-                    const clone = { ... args.isInternalChange };
-
-                    delete clone[ key ];
-
-                    args.setIsInternalChange( clone );
-
-                    return;
-                }
 
                 // If attached, then detach
                 props.setCollapsedState( args.selected[ key ] ? "attached" : "detached" );
