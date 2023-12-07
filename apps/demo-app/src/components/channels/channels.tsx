@@ -8,15 +8,15 @@ import { withCommands } from "@infinigrow/commander/with-commands";
 
 import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
 
-import Channel from "@infinigrow/demo-app/src/modules/channel/channel";
-import ChannelInternal from "@infinigrow/demo-app/src/modules/channel/channel-internal";
+import Channel from "@infinigrow/demo-app/src/components/channel/channel";
+import ChannelInternal from "@infinigrow/demo-app/src/components/channel/channel-internal";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
-import type { ChannelsProps, ChannelComponent } from "@infinigrow/demo-app/src/modules/channel/channel";
+import type { ChannelsProps, ChannelComponent } from "@infinigrow/demo-app/src/components/channel/channel";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
@@ -42,7 +42,7 @@ export function toAccordionItem(
             edit: {
                 label: "Edit",
                 action: () => channelsCommands.run(
-                    "Modules/Channels/EditRequest",
+                    "App/Channels/EditRequest",
                     { channel, }
                 ),
             },
@@ -50,7 +50,7 @@ export function toAccordionItem(
                 label: "Remove",
                 color: "danger",
                 action: () => channelsCommands.run(
-                    "Modules/Channels/Remove",
+                    "App/Channels/Remove",
                     { channel, }
                 ),
             },
@@ -68,13 +68,13 @@ function bindAccordionInteractions(
     setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
     setChannelsState: React.Dispatch<React.SetStateAction<ChannelComponent[]>>,
 ) {
-    const channelsCommands = useComponentCommands( "Modules/Channels" ),
+    const channelsCommands = useComponentCommands( "App/Channels" ),
         addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
         // Hook local actions
-        channelsCommands.hook( "Modules/Channels/EditRequest", ( args: any ) => {
+        channelsCommands.hook( "App/Channels/EditRequest", ( args: any ) => {
             // On edit request, select the channel (trigger accordion item selection)
             setSelected( { [ args.channel.props.id ]: true } );
 
@@ -109,7 +109,7 @@ function bindAccordionInteractions(
 
         } );
 
-        channelsCommands.hook( "Modules/Channels/Remove", ( args: any ) => {
+        channelsCommands.hook( "App/Channels/Remove", ( args: any ) => {
             // Remove the channel from the list
             setChannelsState( ( channels ) => channels.filter( ( channel ) => channel.props.id !== args.channel.props.id ) );
         } );
@@ -151,7 +151,7 @@ const Channels: CommandFunctionComponent<ChannelsProps> = ( props ) => {
 
     const [ channelsState, setChannelsState ] = React.useState<ChannelComponent[]>( channels );
 
-    const channelsCommands = useComponentCommands( "Modules/Channels" );
+    const channelsCommands = useComponentCommands( "App/Channels" );
 
     function renderAccordionItem( channel: ChannelComponent, index: number ) {
         return toAccordionItem( channel, channelsCommands, index );
@@ -172,15 +172,15 @@ const Channels: CommandFunctionComponent<ChannelsProps> = ( props ) => {
     );
 };
 
-const $$ = withCommands( "Modules/Channels", Channels, [
+const $$ = withCommands( "App/Channels", Channels, [
     class EditRequest extends CommandBase {
         public static getName() {
-            return "Modules/Channels/EditRequest";
+            return "App/Channels/EditRequest";
         }
     },
     class Remove extends CommandBase {
         public static getName() {
-            return "Modules/Channels/Remove";
+            return "App/Channels/Remove";
         }
     }
 ] );
