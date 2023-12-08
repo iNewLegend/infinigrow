@@ -2,6 +2,8 @@ import React from "react";
 
 import { Select, SelectItem } from "@nextui-org/select";
 
+import { useCommand } from "@infinigrow/commander/use-commands";
+
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
 import type {
@@ -29,6 +31,7 @@ const DEFAULT_PROPS: Partial<SelectProps> = {
     variant: "bordered",
     radius: "none",
     disallowEmptySelection: true,
+    "aria-labelledby": "channel-budget-frequency-label",
 };
 
 export function getChannelBudgetFrequencyLabel( frequency: ChannelBudgetFrequencyPossibleValues ) {
@@ -38,14 +41,14 @@ export function getChannelBudgetFrequencyLabel( frequency: ChannelBudgetFrequenc
 export function ChannelBudgetFrequency( props: ChannelBudgetFrequencyProps ) {
     const { frequency, setFrequency } = props;
 
+    const command = useCommand( "App/ChannelItem/SetFrequency" );
+
     const selectProps: Partial<SelectProps> = {
         ... DEFAULT_PROPS,
 
         selectedKeys: [ frequency ] as any,
 
-        onChange: ( e ) => {
-            setFrequency( e.target.value as any );
-        },
+        onChange: ( e ) => command.run( { value: e.target.value, setFrequency } )
     };
 
     return (

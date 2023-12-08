@@ -2,6 +2,8 @@ import React from "react";
 
 import { Input } from "@nextui-org/input";
 
+import { useCommand } from "@infinigrow/commander/use-commands";
+
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
 import {
@@ -25,38 +27,20 @@ const DEFAULT_PROPS: Partial<InputProps> = {
     radius: "none",
 };
 
-function formatValue( value: string ): string {
-    // If include alphabet, then 0
-    if ( /[a-zA-Z]/.test( value ) ) {
-        return "0";
-    }
-
-    // Remove leading zeros.
-    value = value.replace( /^0+/, "" );
-
-    // Decimal separator (eg 100 /  1,000 / 10,000).
-    const valueWithoutSeparators = value.replace( /,/g, "" );
-
-    if ( valueWithoutSeparators.length > 3 ) {
-        const separatorIndex = valueWithoutSeparators.length - 3;
-
-        value = `${ valueWithoutSeparators.slice( 0, separatorIndex ) },${ valueWithoutSeparators.slice( separatorIndex ) }`;
-    }
-
-    return value;
-}
-
 export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
     const { frequency } = props;
 
     const [ baseline, setBaseline ] = React.useState<string>( "0" );
 
+    const command = useCommand( "App/ChannelItem/SetBaseline" );
+
     const inputProps: InputProps = {
         ... DEFAULT_PROPS,
         value: baseline.toString(),
-        onChange: ( e ) => {
-            setBaseline( formatValue( e.target.value ) );
-        },
+        onChange: ( e ) => command.run( {
+            value: e.target.value,
+            setBaseline,
+        } )
     };
 
     return (
