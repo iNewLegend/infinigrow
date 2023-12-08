@@ -4,7 +4,6 @@ import type React from "react";
 export type BudgetAllocationType = "equal" | "manual";
 
 export type ChannelBudgetAllocationProps = {
-    setAllocation: React.Dispatch<React.SetStateAction<BudgetAllocationType>>,
     allocation: BudgetAllocationType;
 };
 
@@ -13,12 +12,10 @@ export type ChannelBudgetFrequencyPossibleValues = "annually" | "monthly" | "qua
 
 export type ChannelBudgetFrequencyProps = {
     frequency: ChannelBudgetFrequencyPossibleValues,
-    setFrequency: React.Dispatch<React.SetStateAction<ChannelBudgetFrequencyPossibleValues>>,
 };
 
 // Baseline
 export type ChannelBudgetBaselineProps = {
     frequency: ChannelBudgetFrequencyProps["frequency"],
     baseline: string | undefined,
-    setBaseline: React.Dispatch<React.SetStateAction<string>>,
 };

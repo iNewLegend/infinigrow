@@ -39,7 +39,7 @@ export function getChannelBudgetFrequencyLabel( frequency: ChannelBudgetFrequenc
 }
 
 export function ChannelBudgetFrequency( props: ChannelBudgetFrequencyProps ) {
-    const { frequency, setFrequency } = props;
+    const { frequency } = props;
 
     const command = useCommand( "App/ChannelItem/SetFrequency" );
 
@@ -48,7 +48,7 @@ export function ChannelBudgetFrequency( props: ChannelBudgetFrequencyProps ) {
 
         selectedKeys: [ frequency ] as any,
 
-        onChange: ( e ) => command.run( { value: e.target.value, setFrequency } )
+        onChange: ( e ) => command.run( { value: e.target.value } )
     };
 
     return (

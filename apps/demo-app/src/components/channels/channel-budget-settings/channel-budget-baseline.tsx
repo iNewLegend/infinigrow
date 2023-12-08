@@ -10,11 +10,11 @@ import {
     getChannelBudgetFrequencyLabel
 } from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-frequency";
 
+import type { InputProps } from "@nextui-org/input";
+
 import type {
     ChannelBudgetBaselineProps
 } from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-types.ts";
-
-import type { InputProps } from "@nextui-org/input";
 
 const DEFAULT_PROPS: Partial<InputProps> = {
     classNames: {
@@ -28,18 +28,15 @@ const DEFAULT_PROPS: Partial<InputProps> = {
 };
 
 export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
-    const { frequency } = props;
-
-    const [ baseline, setBaseline ] = React.useState<string>( "0" );
+    const { frequency, baseline } = props;
 
     const command = useCommand( "App/ChannelItem/SetBaseline" );
 
     const inputProps: InputProps = {
         ... DEFAULT_PROPS,
-        value: baseline.toString(),
+        value: ( baseline || 0 ).toString(),
         onChange: ( e ) => command.run( {
             value: e.target.value,
-            setBaseline,
         } )
     };
 

@@ -30,10 +30,9 @@ const DEFAULT_PROPS: ButtonProps = {
 
 export function ChannelBudgetAllocationButton( props: ButtonProps & {
     current: BudgetAllocationType,
-    setAllocation: React.Dispatch<React.SetStateAction<BudgetAllocationType>>,
     allocation: BudgetAllocationType;
 } ) {
-    const { current, setAllocation, allocation, ... buttonProps } = props;
+    const { current, allocation, ... buttonProps } = props;
 
     const command = useCommand( "App/ChannelItem/SetAllocation" );
 
@@ -43,7 +42,7 @@ export function ChannelBudgetAllocationButton( props: ButtonProps & {
             { ... buttonProps }
             data-active={ allocation === current }
             disabled={ allocation === current }
-            onClick={ () => command.run( { value: current, setAllocation } ) }
+            onClick={ () => command.run( { value: current } ) }
         >
             { getChannelBudgetAllocationLabel( current ) }
         </Button>

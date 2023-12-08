@@ -84,23 +84,28 @@ function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baselin
     return breaks;
 }
 
-export const ChannelBreakdowns: React.FC<{
-    frequency: ChannelBudgetFrequencyProps["frequency"];
-    baseline: string;
-    allocation: BudgetAllocationType;
-}> = ( props ) => {
-    const { frequency, baseline, allocation } = props;
+export const ChannelBreakdowns: React.FC = () => {
+    const commands = useComponentCommands( "App/ChannelItem" ),
+        state = commands.getState<State>();
 
-    const commands = useComponentCommands( "App/ChannelItem" );
+    // Those are initial values, they are not "live" values.
+    const { frequency, baseline, allocation } = state;
 
     const [ breaks, setBreaks ] = React.useState<React.JSX.Element[]>(
         getBreaks( frequency, baseline, allocation )
     );
 
+    const setCurrentBreaks = async ( stateUpdated: Promise<State> ) => {
+        await stateUpdated;
+
+        const currentState = commands.getState<State>();
+
+        setBreaks( getBreaks( currentState.frequency, currentState.baseline, currentState.allocation ) );
+    };
+
     React.useEffect( () => {
-        commands.hook( "App/ChannelItem/SetBaseline", ( args ) => {
-            setBreaks( getBreaks( frequency, args.value, allocation ) );
-        } );
+        commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreaks );
+        commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreaks );
     }, [] );
 
     return (
@@ -110,20 +115,15 @@ export const ChannelBreakdowns: React.FC<{
     );
 };
 
-export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props ) => {
-    const [ frequency, setFrequency ] =
-        React.useState<ChannelBudgetFrequencyProps["frequency"]>( "annually" );
-
-    const [ baseline, setBaseline ] = React.useState<string>( "0" );
-
-    const [ allocation, setAllocation ] = React.useState<BudgetAllocationType>( "equal" );
+export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props, state ) => {
+    const { frequency, baseline, allocation } = state;
 
     return (
         <div className="channel-item">
             <div className="channel-budget-settings">
-                <ChannelBudgetFrequency frequency={ frequency } setFrequency={ setFrequency }/>
-                <ChannelBudgetBaseline frequency={ frequency } baseline={ baseline } setBaseline={ setBaseline }/>
-                <ChannelBudgetAllocation allocation={ allocation } setAllocation={ setAllocation }/>
+                <ChannelBudgetFrequency frequency={ frequency }/>
+                <ChannelBudgetBaseline frequency={ frequency } baseline={ baseline }/>
+                <ChannelBudgetAllocation allocation={ allocation }/>
             </div>
 
             <div className="channel-budget-breakdowns">
@@ -131,25 +131,27 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props )
                     <p className="fs-2">Budget Breakdown</p>
                     <p className="description">By default, your budget will be equally divided throughout the year. You
                         can manually change the budget allocation, either now or later.</p>
-                    <ChannelBreakdowns frequency={ frequency } baseline={ baseline } allocation={ allocation }/>
+                    <ChannelBreakdowns/>
                 </div>
             </div>
         </div>
     );
 };
 
-const $$ = withCommands( "App/ChannelItem", ChannelItem, [
+const $$ = withCommands<State>( "App/ChannelItem", ChannelItem, {
+    frequency: "annually",
+    baseline: "0",
+    allocation: "equal"
+}, [
     class SetAllocation extends CommandBase {
         public static getName() {
             return "App/ChannelItem/SetAllocation";
         }
 
         protected apply( args: CommandArgs ) {
-            const { value, setAllocation } = args;
+            const { value } = args;
 
-            setAllocation( value );
-
-            return value;
+            return this.setState( { allocation: value } );
         }
     },
     class SetBaseline extends CommandBase {
@@ -160,13 +162,12 @@ const $$ = withCommands( "App/ChannelItem", ChannelItem, [
         protected apply( args: CommandArgs ) {
             let result;
 
-            const { value, setBaseline } = args;
+            const { value } = args;
 
             // If include alphabet, then halt
             if ( /[a-zA-Z]/.test( value ) ) {
                 return;
             }
-            ;
 
             // Remove leading zeros.
             result = value.replace( /^0+/, "" );
@@ -180,9 +181,7 @@ const $$ = withCommands( "App/ChannelItem", ChannelItem, [
                 result = `${ valueWithoutSeparators.slice( 0, separatorIndex ) },${ valueWithoutSeparators.slice( separatorIndex ) }`;
             }
 
-            setBaseline( result );
-
-            return result;
+            return this.setState( { baseline: result } );
         }
     },
     class SetFrequency extends CommandBase {
@@ -191,11 +190,9 @@ const $$ = withCommands( "App/ChannelItem", ChannelItem, [
         }
 
         protected apply( args: CommandArgs ) {
-            const { value, setFrequency } = args;
+            const { value } = args;
 
-            setFrequency( value );
-
-            return value;
+            return this.setState( { frequency: value } );
         }
     }
 ] );
