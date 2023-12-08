@@ -1,5 +1,3 @@
-import type React from "react";
-
 // Allocation
 export type BudgetAllocationType = "equal" | "manual";
 
@@ -17,5 +15,6 @@ export type ChannelBudgetFrequencyProps = {
 // Baseline
 export type ChannelBudgetBaselineProps = {
     frequency: ChannelBudgetFrequencyProps["frequency"],
+    allocation: ChannelBudgetAllocationProps["allocation"],
     baseline: string | undefined,
 };

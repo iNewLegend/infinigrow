@@ -163,7 +163,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props, 
         <div className="channel-item">
             <div className="channel-budget-settings">
                 <ChannelBudgetFrequency frequency={ frequency }/>
-                <ChannelBudgetBaseline frequency={ frequency } baseline={ baseline }/>
+                <ChannelBudgetBaseline frequency={ frequency } baseline={ baseline } allocation={ allocation }/>
                 <ChannelBudgetAllocation allocation={ allocation }/>
             </div>
 

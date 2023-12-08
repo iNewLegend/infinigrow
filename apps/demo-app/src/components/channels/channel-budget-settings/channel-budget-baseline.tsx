@@ -28,12 +28,13 @@ const DEFAULT_PROPS: Partial<InputProps> = {
 };
 
 export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
-    const { frequency, baseline } = props;
+    const { frequency, allocation, baseline } = props;
 
     const command = useCommand( "App/ChannelItem/SetBaseline" );
 
     const inputProps: InputProps = {
         ... DEFAULT_PROPS,
+        disabled: allocation === "manual",
         value: ( baseline || 0 ).toString(),
         onChange: ( e ) => command.run( {
             value: e.target.value,
@@ -41,7 +42,7 @@ export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
     };
 
     return (
-        <div className="channel-budget-baseline">
+        <div className="channel-budget-baseline" data-disabled={ inputProps.disabled }>
             <Info>Baseline [{ getChannelBudgetFrequencyLabel( frequency ) }] Budget</Info>
             <Input aria-labelledby="baseline" { ... inputProps }></Input>
         </div>

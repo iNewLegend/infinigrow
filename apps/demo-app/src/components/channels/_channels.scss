@@ -44,6 +44,15 @@
 
         .channel-budget-baseline {
             @apply w-[237px];
+
+            &[data-disabled="true"] {
+                .trigger {
+                    @apply bg-[#F5F6FA];
+                }
+                input {
+                    color: #99A4C2;
+                }
+            }
         }
 
         .channel-budget-allocation {
@@ -81,6 +90,11 @@
 
                 &[data-disabled="false"] .trigger {
                     @apply bg-white;
+                    color: #2A3558;
+                }
+
+                &[data-disabled="true"] .trigger {
+                    color: #99A4C2;
                 }
             }
         }
