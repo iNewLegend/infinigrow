@@ -21,12 +21,13 @@ import type {
     BudgetAllocationType
 } from "@infinigrow/demo-app/src/components/channels/channel-budget-settings";
 
+import type { InputProps } from "@nextui-org/input";
+
 import type { ChannelItemProps } from "@infinigrow/demo-app/src/components/channels/channel-types";
 
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
-import type { InputProps } from "@nextui-org/input";
 
-const DEFAULT_INPUT_PROPS: InputProps = {
+const DEFAULT_BREAK_INPUT_PROPS: InputProps = {
     classNames: {
         base: "input",
         mainWrapper: "wrapper",
@@ -45,13 +46,26 @@ const DEFAULT_INPUT_PROPS: InputProps = {
     ),
 };
 
+export interface State extends React.ComponentState {
+    frequency: ChannelBudgetFrequencyProps["frequency"];
+    baseline: string;
+    allocation: BudgetAllocationType;
+}
+
+const initialState: State = {
+    frequency: "annually",
+    baseline: "0",
+    allocation: "equal"
+};
+
 function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baseline: string, allocation: BudgetAllocationType ) {
     const breaks: React.JSX.Element[] = [];
 
     const Break: React.FC<{ label: string; value: string }> = ( props ) => {
-        const { label, value } = props;
+        const { label, value } = props,
+            parsed = parseFloat( value );
 
-        const formatted = ( parseFloat( value ) ).toLocaleString(
+        const formatted = ( Number.isNaN( parsed ) ? 0 : parsed ).toLocaleString(
             undefined,
             {
                 minimumFractionDigits: 0,
@@ -61,9 +75,13 @@ function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baselin
 
         return (
             <div className="break">
-                <Input { ... DEFAULT_INPUT_PROPS } label={ label } value={ formatted }></Input>
+                <Input { ... DEFAULT_BREAK_INPUT_PROPS } label={ label } value={ formatted }></Input>
             </div>
         );
+    };
+
+    function getMonth( index: number ) {
+        return moment().month( index ).format( "MMM D" );
     };
 
     const baselineParsed = parseFloat( baseline.replace( /,/g, "" ) );
@@ -73,10 +91,29 @@ function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baselin
             const perMonth = baselineParsed / 12;
 
             for ( let i = 0 ; i < 12 ; i++ ) {
-                const month = moment().month( i ).format( "MMM D" );
-
                 breaks.push( (
-                    <Break key={ i } label={ month } value={ perMonth.toString() }/> ) );
+                    <Break key={ i } label={ getMonth( i ) } value={ perMonth.toString() }/> ) );
+            }
+            break;
+
+        case "monthly":
+            for ( let i = 0 ; i < 12 ; i++ ) {
+                breaks.push( (
+                    <Break key={ i } label={ getMonth( i ) } value={ baselineParsed.toString() }/> ) );
+            }
+            break;
+
+        case "quarterly":
+            const perQuarter = baselineParsed / 4;
+
+            for ( let i = 0 ; i < 12 ; i++ ) {
+                if ( i % 3 === 0 ) {
+                    breaks.push( (
+                        <Break key={ i } label={ getMonth( i ) } value={ perQuarter.toString() }/> ) );
+                } else {
+                    breaks.push( (
+                        <Break key={ i } label={ getMonth( i ) } value="0"/> ) );
+                }
             }
             break;
     }
@@ -96,6 +133,7 @@ export const ChannelBreakdowns: React.FC = () => {
     );
 
     const setCurrentBreaks = async ( stateUpdated: Promise<State> ) => {
+        // Ensure that the state is updated before we get the new values.
         await stateUpdated;
 
         const currentState = commands.getState<State>();
@@ -138,11 +176,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props, 
     );
 };
 
-const $$ = withCommands<State>( "App/ChannelItem", ChannelItem, {
-    frequency: "annually",
-    baseline: "0",
-    allocation: "equal"
-}, [
+const $$ = withCommands<State>( "App/ChannelItem", ChannelItem, initialState, [
     class SetAllocation extends CommandBase {
         public static getName() {
             return "App/ChannelItem/SetAllocation";
