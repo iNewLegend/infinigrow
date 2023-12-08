@@ -18,6 +18,22 @@
     font-weight: 600;
 }
 
+.loading {
+    @apply flex items-center justify-center;
+    @apply w-full h-full;
+    @apply animate-bounce;
+
+    & span {
+        @apply animate-spin;
+        @apply p-5;
+        font-size: 50px;
+    }
+}
+
+img.icon {
+    @apply w-[36px] h-[36px];
+}
+
 .tabs {
     .list  {
         @apply bg-transparent;

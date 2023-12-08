@@ -5,11 +5,13 @@ import { Card, CardBody } from "@nextui-org/card";
 
 import { NextUIProvider } from "@nextui-org/system";
 
+import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-module";
+
+import { API } from "@infinigrow/demo-app/src/api";
+
 import AddChannel from "@infinigrow/demo-app/src/components/add-channel/add-channel";
 import Channels from "@infinigrow/demo-app/src/components/channels/channels-list";
 import Channel from "@infinigrow/demo-app/src/components/channel/channel-item";
-
-import AffiliateProgramPNG from "@infinigrow/demo-app/src/ui-theme/images/affiliate-program.png";
 
 import Layout from "@infinigrow/demo-app/src/ui-layout/layout";
 
@@ -17,36 +19,27 @@ import "@infinigrow/demo-app/src/app.scss";
 
 import type { LayoutProps } from "@infinigrow/demo-app/src/ui-layout/layout";
 
-function Main() {
+API.register( APIChannelsModule );
+
+function BudgetAllocation() {
     return (
-        <Tabs classNames={ {
-            base: "tabs",
-            tabList: "list",
-            tab: "tab",
-            cursor: "cursor",
-        } }>
-            <Tab title="Tab 1">
-                <Channels>
-                    <Channel
-                        id="paid-reviews"
-                        name="Paid reviews"
-                        icon={ AffiliateProgramPNG }
-                    />
-                    <Channel
-                        id="paid-reviews2"
-                        name="Paid reviews 2"
-                        icon={ AffiliateProgramPNG }
-                    />
-                </Channels>
-            </Tab>
-            <Tab title="Tab 2">
-                <Card>
-                    <CardBody>
-                        <p>Tab 2 content</p>
-                    </CardBody>
-                </Card>
-            </Tab>
-        </Tabs>
+        <API.Component
+            fallback={ <div className="loading">Loading <span className="dots">◌</span></div> }
+            module={ APIChannelsModule }
+            type={ Channels }
+        >
+            <API.Component type={ Channel }/>
+        </API.Component>
+    );
+}
+
+function BudgetOverview() {
+    return (
+        <Card>
+            <CardBody>
+                <p>Tab 2 content</p>
+            </CardBody>
+        </Card>
     );
 }
 
@@ -57,11 +50,31 @@ function App() {
         }
     };
 
+    const tabsProps = {
+        classNames: {
+            base: "tabs",
+            tabList: "list",
+            tab: "tab",
+            cursor: "cursor",
+        },
+        items: [
+            { id: "allocation", title: "Budget Allocation", content: <BudgetAllocation/> },
+            { id: "overview", title: "Budget Overview", content: <BudgetOverview/> },
+        ],
+    };
+
     return (
         <NextUIProvider>
-                <Layout { ... layoutProps }>
-                    <Main/>
-                </Layout>
+            <Layout { ... layoutProps }>
+                <Tabs { ... tabsProps }> {
+                    tabsProps.items.map( ( tab ) => (
+                        <Tab key={ tab.id } title={ tab.title }>
+                            { tab.content }
+                        </Tab>
+                    ) )
+                }
+                </Tabs>
+            </Layout>
         </NextUIProvider>
     );
 }
