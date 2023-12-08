@@ -60,7 +60,7 @@
         @apply bg-gradient-to-r from-50% to-[#B2BBD580];
         @apply rounded border border-slate-300 border-opacity-50;
 
-        .description  {
+        .description {
             @apply text-slate-400 text-sm font-normal leading-[21px];
             @apply font-thin;
         }
@@ -73,9 +73,13 @@
                 .label {
                     @apply text-slate-700 text-sm font-normal leading-[21px];
                 }
+
                 .trigger {
                     @apply pt-0 pb-0 border-[rgba(178,187,213,0.50)];
                     @apply min-h-0 h-10 w-[160px];
+                }
+
+                &[data-disabled="false"] .trigger {
                     @apply bg-white;
                 }
             }

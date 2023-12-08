@@ -73,9 +73,11 @@ function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baselin
             }
         );
 
+        const shouldDisable = allocation === "equal";
+
         return (
-            <div className="break">
-                <Input { ... DEFAULT_BREAK_INPUT_PROPS } label={ label } value={ formatted }></Input>
+            <div className="break" data-disabled={ shouldDisable }>
+                <Input disabled={shouldDisable} { ... DEFAULT_BREAK_INPUT_PROPS } label={ label } value={ formatted }></Input>
             </div>
         );
     };
@@ -144,6 +146,7 @@ export const ChannelBreakdowns: React.FC = () => {
     React.useEffect( () => {
         commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreaks );
         commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreaks );
+        commands.hook( "App/ChannelItem/SetAllocation", setCurrentBreaks );
     }, [] );
 
     return (
