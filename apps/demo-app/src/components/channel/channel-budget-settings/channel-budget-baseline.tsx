@@ -41,9 +41,12 @@ export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
         } )
     };
 
+    const frequencyLabel = inputProps.disabled ? "Manual" :
+        getChannelBudgetFrequencyLabel( frequency );
+
     return (
         <div className="channel-budget-baseline" data-disabled={ inputProps.disabled }>
-            <Info>Baseline [{ getChannelBudgetFrequencyLabel( frequency ) }] Budget</Info>
+            <Info>Baseline [{ frequencyLabel }] Budget</Info>
             <Input aria-labelledby="baseline" { ... inputProps }></Input>
         </div>
     );

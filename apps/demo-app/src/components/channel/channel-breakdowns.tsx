@@ -34,12 +34,17 @@ const DEFAULT_BREAK_INPUT_PROPS: InputProps = {
     ),
 };
 
-function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baseline: string, allocation: BudgetAllocationType ) {
+function getBreaks(
+    frequency: ChannelBudgetFrequencyProps["frequency"],
+    baseline: string,
+    allocation: BudgetAllocationType,
+    commands: ReturnType<typeof useComponentCommands>
+) {
     const breaks: React.JSX.Element[] = [];
 
     const Break: React.FC<{ label: string; value: string }> = ( props ) => {
-        const { label, value } = props,
-            parsed = parseFloat( value );
+        const { label } = props,
+            parsed = parseFloat( props.value );
 
         const formatted = ( Number.isNaN( parsed ) ? 0 : parsed ).toLocaleString(
             undefined,
@@ -49,11 +54,25 @@ function getBreaks( frequency: ChannelBudgetFrequencyProps["frequency"], baselin
             }
         );
 
-        const shouldDisable = allocation === "equal";
+        const [ value, setValue ] = React.useState<string>( formatted ),
+            disabled = allocation === "equal";
+
+        const inputProps: InputProps = {
+            ... DEFAULT_BREAK_INPUT_PROPS,
+
+            label,
+            value,
+            disabled,
+
+            onChange: ( e ) => ! disabled && commands.run( "App/ChannelItem/SetBreakdown", {
+                setValue,
+                value: e.target.value
+            } )
+        };
 
         return (
-            <div className="break" data-disabled={ shouldDisable }>
-                <Input disabled={shouldDisable} { ... DEFAULT_BREAK_INPUT_PROPS } label={ label } value={ formatted }></Input>
+            <div className="break" data-disabled={ inputProps.disabled }>
+                <Input { ... inputProps } />
             </div>
         );
     };
@@ -105,23 +124,61 @@ export const ChannelBreakdowns: React.FC = () => {
     // Those are initial values, they are not "live" values.
     const { frequency, baseline, allocation } = state;
 
-    const [ breaks, setBreaks ] = React.useState<React.JSX.Element[]>(
-        getBreaks( frequency, baseline, allocation )
+    const [ breaks, setBreaks ] = React.useState<React.JSX.Element[]>( getBreaks(
+            frequency,
+            baseline,
+            allocation,
+            commands
+        )
     );
 
-    const setCurrentBreaks = async ( stateUpdated: Promise<ChannelState> ) => {
+    const setCurrentBreaks = async ( stateUpdated: Promise<ChannelState | void> ) => {
         // Ensure that the state is updated before we get the new values.
         await stateUpdated;
 
         const currentState = commands.getState<ChannelState>();
 
-        setBreaks( getBreaks( currentState.frequency, currentState.baseline, currentState.allocation ) );
+        setBreaks( getBreaks(
+            currentState.frequency,
+            currentState.baseline,
+            currentState.allocation,
+            commands
+        ) );
+    };
+
+    /**
+     * TODO: Should be using state, but im lazy.
+     */
+    const setBreakdownSum = () => {
+        // Get all the values from the inputs.
+        const values = Array.from( document.querySelectorAll( ".break input" ) )
+            .map( ( input ) => parseFloat( ( input as HTMLInputElement ).value.replace( /,/g, "" ) ) );
+
+        // Sum them up.
+        const sum = values.reduce( ( a, b ) => a + b, 0 );
+
+        commands.run( "App/ChannelItem/SetBaseline", { value: sum.toString() } );
     };
 
     React.useEffect( () => {
-        commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreaks );
+        commands.hook( "App/ChannelItem/SetBaseline", async ( stateUpdated: Promise<ChannelState> ) => {
+            // Ensure that the state is updated before we get the new values.
+            await stateUpdated;
+
+            const currentState = commands.getState<ChannelState>();
+
+            // If the allocation is manual, we don't want to update the breakdowns.
+            if ( currentState.allocation === "manual" ) {
+                return;
+            }
+
+            setCurrentBreaks( Promise.resolve() );
+        } );
+
         commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreaks );
         commands.hook( "App/ChannelItem/SetAllocation", setCurrentBreaks );
+
+        commands.hook( "App/ChannelItem/SetBreakdown", setBreakdownSum );
     }, [] );
 
     return (

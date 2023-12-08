@@ -13,6 +13,8 @@ import {
 
 import { ChannelBreakdowns } from "@infinigrow/demo-app/src/components/channel/channel-breakdowns";
 
+import { formatNumericInput } from "@infinigrow/demo-app/src/components/channel/channel-utils";
+
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
@@ -64,28 +66,15 @@ const $$ = withCommands<ChannelState>( "App/ChannelItem", ChannelItem, initialSt
         }
 
         protected apply( args: CommandArgs ) {
-            let result;
-
             const { value } = args;
 
-            // If include alphabet, then halt
-            if ( /[a-zA-Z]/.test( value ) ) {
-                return;
+            const formatted = formatNumericInput( value );
+
+            if ( null === formatted ) {
+                return; // Halt
             }
 
-            // Remove leading zeros.
-            result = value.replace( /^0+/, "" );
-
-            // Decimal separator (eg 100 /  1,000 / 10,000).
-            const valueWithoutSeparators = value.replace( /,/g, "" );
-
-            if ( valueWithoutSeparators.length > 3 ) {
-                const separatorIndex = valueWithoutSeparators.length - 3;
-
-                result = `${ valueWithoutSeparators.slice( 0, separatorIndex ) },${ valueWithoutSeparators.slice( separatorIndex ) }`;
-            }
-
-            return this.setState( { baseline: result } );
+            return this.setState( { baseline: formatted } );
         }
     },
     class SetFrequency extends CommandBase {
@@ -97,6 +86,23 @@ const $$ = withCommands<ChannelState>( "App/ChannelItem", ChannelItem, initialSt
             const { value } = args;
 
             return this.setState( { frequency: value } );
+        }
+    },
+    class SetBreakdown extends CommandBase {
+        public static getName() {
+            return "App/ChannelItem/SetBreakdown";
+        }
+
+        protected apply( args: CommandArgs ) {
+            const { value, setValue } = args;
+
+            const formatted = formatNumericInput( value );
+
+            if ( null === formatted ) {
+                return; // Halt
+            }
+
+            setValue( formatted );
         }
     }
 ] );
