@@ -88,7 +88,7 @@ class CommandsManager {
         return executionResult;
     }
 
-    public hook( id: CommandIdArgs, callback: ( result: any ) => any ) {
+    public hook( id: CommandIdArgs, callback: ( result?: any, args?: CommandArgs ) => any ) {
         const { componentNameUnique, componentName, commandName } = id;
 
         if ( ! this.commands[ componentName ] ) {

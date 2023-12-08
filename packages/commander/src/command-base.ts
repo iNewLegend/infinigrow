@@ -27,7 +27,7 @@ export abstract class CommandBase<TState = React.ComponentState> {
 
         const result = this.apply?.( args );
 
-        emitter.emit( this.commandName, result );
+        emitter.emit( this.commandName, result, args );
 
         this.options = {};
 

@@ -30,7 +30,8 @@ export interface AccordionItemProps extends Omit<UIThemeAccordionItemProps, "hea
 }
 
 const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: AccordionItemProps ) => {
-    const [ isEditing, setIsEditing ] = React.useState( false );
+    const [ isEditing, setIsEditing ] = React.useState( false ),
+        [ isFocusCaptured, setIsFocusCaptured ] = React.useState( false );
 
     const ref = React.useRef<HTMLDivElement>( null );
 
@@ -75,9 +76,30 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         e.currentTarget.focus();
     }
 
+    function onFocusCapture() {
+        if ( ! isEditing ) {
+            return;
+        }
+
+        setIsFocusCaptured( true );
+    }
+
+    function onBlur( e: React.FocusEvent<HTMLSpanElement> ) {
+        if ( ! isEditing ) {
+            return;
+        }
+
+        if ( isFocusCaptured ) {
+            setIsFocusCaptured( false );
+            setIsEditing( false );
+
+            onTitleChangedCommand.run( { title: e.currentTarget.innerText } );
+        }
+    }
+
     React.useEffect( () => {
-        editableCommand.hook( ( { state } ) => {
-            setIsEditing( state );
+        editableCommand.hook( ( result, args ) => {
+            setIsEditing( args!.state );
         } );
     }, [ setIsEditing ] );
 
@@ -88,6 +110,8 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         suppressContentEditableWarning={ true }
         onKeyPress={ onKeyPress }
         onClick={ onClick }
+        onFocusCapture={ onFocusCapture }
+        onBlur={ onBlur }
     >
         { props.heading?.title }
     </span>;

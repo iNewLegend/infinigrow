@@ -20,7 +20,7 @@ export function channelsInteractions( args: {
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
         // Hook local actions
-        channelsCommands.hook( "App/ChannelsList/EditRequest", ( args: any ) => {
+        channelsCommands.hook( "App/ChannelsList/EditRequest", ( result, args: any ) => {
             // On edit request, select the channel (trigger accordion item selection)
             setSelected( { [ args.channel.props.id ]: true } );
 
@@ -42,9 +42,9 @@ export function channelsInteractions( args: {
                     };
 
                     // Hook on title changed
-                    commandsManager.hook( onTitleChangedId, ( { title } ) => {
+                    commandsManager.hook( onTitleChangedId, ( result, args ) => {
                         // TODO: Update some state
-                        console.log( `Title changed to: ${ title }` );
+                        console.log( `Title changed to: ${ args!.title }` );
                     } );
 
                     commandsManager.run( editAbleId, { state: true } );
