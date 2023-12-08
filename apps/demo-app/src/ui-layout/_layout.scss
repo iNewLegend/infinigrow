@@ -8,24 +8,6 @@
         @apply pt-[50px];
         @apply pb-[50px];
 
-        .fs-1 {
-            font-family: map-get( fonts.$karu-fonts, 'karu-regular' );
-
-            /* Figma */
-            color: #182033;
-            font-size: 24px;
-            font-weight: 500;
-            letter-spacing: -0.2px;
-        }
-
-        .fs-2 {
-            /* Figma */
-            color: #182033;
-            font-family: map-get( fonts.$karu-fonts, 'karu-bold' );
-            font-size: 18px;
-            font-weight: 600;
-        }
-
         .end {
             @apply flex;
             @apply justify-end;

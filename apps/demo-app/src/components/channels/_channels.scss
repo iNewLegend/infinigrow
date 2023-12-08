@@ -50,4 +50,35 @@
             @apply w-fit;
         }
     }
+
+    .channel-budget-breakdowns {
+        @apply mt-[50px];
+        @apply p-[24px];
+        @apply min-w-[1200px];
+        @apply min-h-[300px];
+        @apply bg-[#F5F6FA];
+        @apply bg-gradient-to-r from-50% to-[#B2BBD580];
+        @apply rounded border border-slate-300 border-opacity-50;
+
+        .description  {
+            @apply text-slate-400 text-sm font-normal leading-[21px];
+            @apply font-thin;
+        }
+
+        .content {
+            @apply p-[24px];
+            @apply grid grid-cols-6 gap-[20px];
+
+            .break {
+                .label {
+                    @apply text-slate-700 text-sm font-normal leading-[21px];
+                }
+                .trigger {
+                    @apply pt-0 pb-0 border-[rgba(178,187,213,0.50)];
+                    @apply min-h-0 h-10 w-[160px];
+                    @apply bg-white;
+                }
+            }
+        }
+    }
 }
