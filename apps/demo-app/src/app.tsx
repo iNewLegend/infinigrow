@@ -6,13 +6,12 @@ import { Card, CardBody } from "@nextui-org/card";
 import { NextUIProvider } from "@nextui-org/system";
 
 import AddChannel from "@infinigrow/demo-app/src/components/add-channel/add-channel";
+import Channels from "@infinigrow/demo-app/src/components/channels/channels-list";
+import Channel from "@infinigrow/demo-app/src/components/channel/channel-item";
 
 import AffiliateProgramPNG from "@infinigrow/demo-app/src/ui-theme/images/affiliate-program.png";
 
 import Layout from "@infinigrow/demo-app/src/ui-layout/layout";
-
-import Channels from "@infinigrow/demo-app/src/components/channels/channel-list";
-import Channel from "@infinigrow/demo-app/src/components/channels/channel-item";
 
 import "@infinigrow/demo-app/src/app.scss";
 

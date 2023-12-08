@@ -6,12 +6,12 @@ import { useCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
+import type { SelectProps } from "@nextui-org/select";
+
 import type {
     ChannelBudgetFrequencyPossibleValues,
     ChannelBudgetFrequencyProps
-} from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-types";
-
-import type { SelectProps } from "@nextui-org/select";
+} from "@infinigrow/demo-app/src/components/channel/channel-budget-settings/channel-budget-types";
 
 const DEFAULT_FREQUENCIES: Record<ChannelBudgetFrequencyPossibleValues, string> = {
     annually: "Annually",

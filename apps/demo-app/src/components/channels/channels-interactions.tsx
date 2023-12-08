@@ -4,23 +4,23 @@ import commandsManager from "@infinigrow/commander/commands-manager";
 
 import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
 
-import { ChannelItem } from "@infinigrow/demo-app/src/components/channels/channel-item";
+import { ChannelItem } from "@infinigrow/demo-app/src/components/channel/channel-item";
 
-import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channels/channel-types";
+import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-export function channelInteractions( args: {
+export function channelsInteractions( args: {
     setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
     setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
 }) {
     const { setSelected, setChannelsState } = args;
 
-    const channelsCommands = useComponentCommands( "App/ChannelList" ),
+    const channelsCommands = useComponentCommands( "App/ChannelsList" ),
         addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
         // Hook local actions
-        channelsCommands.hook( "App/ChannelList/EditRequest", ( args: any ) => {
+        channelsCommands.hook( "App/ChannelsList/EditRequest", ( args: any ) => {
             // On edit request, select the channel (trigger accordion item selection)
             setSelected( { [ args.channel.props.id ]: true } );
 
@@ -55,7 +55,7 @@ export function channelInteractions( args: {
 
         } );
 
-        channelsCommands.hook( "App/ChannelList/Remove", ( args: any ) => {
+        channelsCommands.hook( "App/ChannelsList/Remove", ( args: any ) => {
             // Remove the channel from the list
             setChannelsState( ( channels ) => channels.filter( ( channel ) => channel.props.id !== args.channel.props.id ) );
         } );

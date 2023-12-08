@@ -11,7 +11,7 @@ import type { ButtonProps } from "@nextui-org/button";
 import type {
     BudgetAllocationType,
     ChannelBudgetAllocationProps
-} from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-types";
+} from "@infinigrow/demo-app/src/components/channel/channel-budget-settings/channel-budget-types";
 
 const DEFAULT_BUDGET_ALLOCATIONS: Record<BudgetAllocationType, string> = {
     "equal": "Equal",

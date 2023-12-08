@@ -8,13 +8,13 @@ import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
 import {
     getChannelBudgetFrequencyLabel
-} from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-frequency";
-
-import type { InputProps } from "@nextui-org/input";
+} from "@infinigrow/demo-app/src/components/channel/channel-budget-settings/channel-budget-frequency";
 
 import type {
     ChannelBudgetBaselineProps
-} from "@infinigrow/demo-app/src/components/channels/channel-budget-settings/channel-budget-types.ts";
+} from "@infinigrow/demo-app/src/components/channel/channel-budget-settings/channel-budget-types";
+
+import type { InputProps } from "@nextui-org/input";
 
 const DEFAULT_PROPS: Partial<InputProps> = {
     classNames: {
