@@ -1,18 +1,15 @@
-import type React from "react";
+import type { ReactNode } from "react";
 
-// eslint-disable-next-line no-restricted-imports
-import type {
-    GET_INTERNAL_SYMBOL,
-    UNREGISTER_INTERNAL_SYMBOL,
-    REGISTER_INTERNAL_SYMBOL
-} from "./_internal/constants";
+import type React from "react";
 
 import type { EventEmitter } from "events";
 
 import type { CommandBase } from "@infinigrow/commander/command-base";
 
 // Sugar, eg `ComponentType.getName` not `ComponentInstance`
-export interface CommandFunctionComponent<TProps> extends React.FC<TProps> {
+export interface CommandFunctionComponent<TProps = any, TState = undefined> extends React.FC<TProps> {
+    (props: TProps, state?: TState): ReactNode;
+
     // Those methods always implemented "under the hood"
     getName?(): string;
 }
@@ -39,19 +36,9 @@ export interface CommandSingleComponentContext {
     childKeys: React.Key[];
     key: React.Key;
     props: any;
+    getState: () => React.ComponentState;
+    setState: React.Component<any, React.ComponentState>["setState"];
     emitter: EventEmitter;
-}
-
-export interface CommandsContextProps {
-    [ REGISTER_INTERNAL_SYMBOL ]: ( args: {
-        componentNameUnique: string;
-        componentName: string;
-        emitter: EventEmitter;
-    } ) => void;
-
-    [ UNREGISTER_INTERNAL_SYMBOL ]: ( componentNameUnique: string ) => void;
-
-    [ GET_INTERNAL_SYMBOL ]: ( componentNameUnique: string ) => CommandSingleComponentContext;
 }
 
 export interface CommandComponentContextProps {
@@ -63,5 +50,10 @@ export type CommandArgs = {
     [ key: string | number | symbol ]: any
 };
 
-export type CommandNewInstanceWithArgs = ( new ( args: CommandRegisterArgs ) => CommandBase );
+export interface CommandOptions<TState> {
+    state?: React.ComponentState;
+    setState?: React.Component<any, TState>["setState"];
+}
+
+export type CommandNewInstanceWithArgs<TState = undefined> = ( new ( args: CommandRegisterArgs ) => CommandBase<TState> );
 

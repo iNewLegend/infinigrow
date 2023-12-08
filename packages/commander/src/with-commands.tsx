@@ -10,24 +10,61 @@ import {
     REGISTER_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
     LINK_COMPONENTS,
-    GET_INTERNAL_SYMBOL,
-    SET_TO_CONTEXT
+    SET_TO_CONTEXT, GET_INTERNAL_SYMBOL
 } from "./_internal/constants.ts";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
 
 import { ComponentIdProvider } from "@infinigrow/commander/commands-provider";
 
-import type {
-    CommandFunctionComponent,
-    CommandNewInstanceWithArgs
-} from "@infinigrow/commander/types";
+import type { CommandFunctionComponent, CommandNewInstanceWithArgs } from "@infinigrow/commander/types";
+
+export function withCommands<TState = undefined>(
+    componentName: string,
+    Component: CommandFunctionComponent,
+    state: TState,
+    commands: CommandNewInstanceWithArgs<TState>[]
+): CommandFunctionComponent;
 
 export function withCommands(
     componentName: string,
     Component: CommandFunctionComponent,
     commands: CommandNewInstanceWithArgs[]
+): CommandFunctionComponent;
+
+export function withCommands(
+    componentName: string,
+    Component: CommandFunctionComponent,
+    ... args: any[]
 ): CommandFunctionComponent {
+    let commands: CommandNewInstanceWithArgs[],
+        state: React.ComponentState = {};
+
+    if ( args.length === 1 ) {
+        commands = args[ 0 ];
+    } else if ( args.length === 2 ) {
+        state = args[ 0 ];
+        commands = args[ 1 ];
+    } else {
+        throw new Error( "Invalid arguments" );
+    }
+
+    if ( state ) {
+        const originalFunction = Component,
+            originalName = Component.displayName || Component.name || "Component";
+
+        // This approach give us ability to inject second argument to the functional component.
+        Component = function ( props: any ) {
+            const currentState = core[ GET_INTERNAL_SYMBOL ]( props.componentNameUnique ).getState();
+
+            return originalFunction( props, currentState );
+        };
+
+        Object.defineProperty( Component, originalName, { value: originalName, writable: false } );
+
+        Component.displayName = `withInjectedState(${ originalName })`;
+    }
+
     const WrappedComponent = class WrappedComponent extends React.PureComponent<any, {
         componentNameUnique: string
     }> {
@@ -35,6 +72,8 @@ export function withCommands(
 
         public constructor( props: any ) {
             super( props );
+
+            this.state = state;
 
             this.registerContext();
         }
@@ -51,6 +90,10 @@ export function withCommands(
                 componentNameUnique: id,
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
+                getState: () => this.state,
+                setState: ( ... args ) => {
+                    return this.setState( ... args );
+                }
             } );
         }
 
@@ -69,8 +112,6 @@ export function withCommands(
 
             this.registerContext();
 
-            core[ GET_INTERNAL_SYMBOL ]( id ).emitter.emit( "component-did-mount" );
-
             if ( this.props.children?.length ) {
                 const childKeys = React.Children.map( this.props.children, ( child ) => child.key );
 
@@ -87,6 +128,7 @@ export function withCommands(
 
                 core[ LINK_COMPONENTS ]( this.props.parentRef.current, [ this.props.componentNameUnique ], childKeys );
             }
+
             return <Component { ... this.props } $$commands={ commandsManager }/>;
         }
     };

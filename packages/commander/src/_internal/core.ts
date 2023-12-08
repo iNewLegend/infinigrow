@@ -31,8 +31,10 @@ class Core {
         componentName: string;
         commands: CommandSingleComponentContext[ "commands" ],
         emitter: EventEmitter;
+        getState: CommandSingleComponentContext[ "getState" ];
+        setState: CommandSingleComponentContext[ "setState" ];
     } ): void {
-        const { componentNameUnique, componentName, commands, emitter } = args;
+        const { componentNameUnique, componentName, commands, emitter, getState, setState } = args;
 
         this.__devDebug( `Registering component '${ componentNameUnique }'` );
 
@@ -48,6 +50,8 @@ class Core {
             childrenIds: [],
             childKeys: [],
             emitter,
+            getState,
+            setState,
             props: undefined,
             key: undefined as any,
         };

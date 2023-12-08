@@ -36,7 +36,7 @@ export function useCommand( commandName: string ) {
 
     return {
         run: ( args: CommandArgs, callback?: ( result: any ) => void ) => commandsManager.run( id, args, callback ),
-        hook: ( callback: ( args: CommandArgs ) => void ) => commandsManager.hook( id, callback ),
+        hook: ( callback: ( result: any ) => void ) => commandsManager.hook( id, callback ),
 
         getContext: () => commandSignalContext,
     };
@@ -67,7 +67,7 @@ export function useComponentCommands( componentName: string ) {
     return {
         run: ( commandName: string, args: CommandArgs, callback?: ( result: any ) => void ) =>
                 commandsManager.run( { commandName, componentName, componentNameUnique: id }, args, callback ),
-        hook: ( commandName: string, callback: ( args: CommandArgs ) => void ) =>
+        hook: ( commandName: string, callback: ( result?: any ) => void ) =>
                 commandsManager.hook( { commandName, componentName, componentNameUnique: id }, callback ),
         unhook: ( commandName: string ) =>
                 commandsManager.unhook( { commandName, componentName, componentNameUnique: id } ),
@@ -76,6 +76,7 @@ export function useComponentCommands( componentName: string ) {
         getKey: () => core[ GET_INTERNAL_SYMBOL ]( id ).key,
         getContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
         getChildKeys: () => core[ GET_INTERNAL_SYMBOL ]( id ).childKeys,
+        getState: <TState extends React.ComponentState>() => core[ GET_INTERNAL_SYMBOL ]( id ).getState() as TState,
     };
 }
 

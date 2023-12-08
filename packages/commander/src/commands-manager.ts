@@ -8,7 +8,8 @@ import type {
     CommandArgs,
     CommandNewInstanceWithArgs,
     CommandRegisterArgs,
-    CommandIdArgs, CommandSingleComponentContext
+    CommandIdArgs,
+    CommandSingleComponentContext
 } from "@infinigrow/commander/types";
 
 import type { CommandBase } from "@infinigrow/commander/command-base";
@@ -69,7 +70,16 @@ class CommandsManager {
 
         const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique );
 
-        const executionResult = command.execute( singleComponentContext.emitter, args );
+        let executionResult;
+
+        if ( singleComponentContext.getState ) {
+            executionResult = command.execute( singleComponentContext.emitter, args, {
+                state: singleComponentContext.getState(),
+                setState: singleComponentContext.setState,
+            } );
+        } else {
+            executionResult = command.execute( singleComponentContext.emitter, args );
+        }
 
         if ( callback ) {
             callback( executionResult );
@@ -78,14 +88,14 @@ class CommandsManager {
         return executionResult;
     }
 
-    public hook( id: CommandIdArgs, callback: ( args: CommandArgs ) => any ) {
+    public hook( id: CommandIdArgs, callback: ( result: any ) => any ) {
         const { componentNameUnique, componentName, commandName } = id;
 
         if ( ! this.commands[ componentName ] ) {
             throw new Error( `Component '${ componentName }' not registered` );
         }
 
-        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique );
+        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique ) as CommandSingleComponentContext;
 
         // Check if id exist within the component context
         if ( ! singleComponentContext.commands[ commandName ] ) {
