@@ -25,6 +25,11 @@ class CommandsManager {
 
         // Check if the component is registered
         if ( this.commands[ componentName ] ) {
+            // @ts-ignore - If it hot reloads then skip the error
+            if ( import.meta.hot?.hmrClient.pruneMap.size ) {
+                return this.get( componentName );
+            }
+
             throw new Error( `Component '${ componentName }' already registered` );
         }
 
@@ -97,7 +102,14 @@ class CommandsManager {
             throw new Error( `Component '${ componentName }' not registered` );
         }
 
-        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique ) as CommandSingleComponentContext;
+        // @ts-ignore - If it hot reloads then skip the error
+        const shouldSilentError = !! typeof import.meta.hot?.hmrClient.pruneMap.size;
+
+        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique, shouldSilentError ) as CommandSingleComponentContext;
+
+        if ( ! singleComponentContext && shouldSilentError ) {
+            return;
+        }
 
         // Check if id exist within the component context
         if ( ! singleComponentContext.commands[ commandName ] ) {
