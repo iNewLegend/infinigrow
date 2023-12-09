@@ -56,17 +56,19 @@ export function useCommanderCommand( commandName: string ) {
         hook: ( callback: ( result: any, args?: CommandArgs ) => void ) => commandsManager.hook( id, callback ),
 
         // TODO: Remove.
-        getContext: () => commandSignalContext,
+        getInternalContext: () => commandSignalContext,
     };
 }
 
 /**
  * Custom hook to create a command handler for a specific component.
  */
-export function useCommanderComponent( componentName: string, context?: CommandComponentContextProps  ) {
-    const componentContext = getSafeContext( componentName, context );
+export function useCommanderComponent( componentName: string, context?: CommandComponentContextProps, options = { silent: false } ) {
+    if ( ! options.silent ) {
+        context = getSafeContext( componentName, context );
+    }
 
-    const id = componentContext.getNameUnique();
+    const id = context!.getNameUnique();
 
     return {
         run: ( commandName: string, args: CommandArgs, callback?: ( result: any ) => void ) =>
@@ -79,9 +81,48 @@ export function useCommanderComponent( componentName: string, context?: CommandC
         // TODO: Remove.
         getId: () => id,
         getKey: () => core[ GET_INTERNAL_SYMBOL ]( id ).key,
-        getContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
+        getInternalContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
+        getContext: () => context!,
         getState: <TState extends React.ComponentState>() => core[ GET_INTERNAL_SYMBOL ]( id ).getState() as TState,
     };
+}
+
+export function useCommanderChildrenComponents( componentName: string ) {
+    const componentContext = React.useContext( ComponentIdContext );
+
+    const [ childrenComponents, setChildrenComponents ] = React.useState<ReturnType<typeof useCommanderComponent>[]>( [] );
+
+    React.useEffect( () => {
+        const children = componentContext.children;
+
+        if ( ! children ) {
+            throw new Error( `Current component: '${ componentContext.getComponentName() }' cannot find: '${ componentName }' children` );
+        }
+
+        const newChildrenComponents: ReturnType<typeof useCommanderComponent>[] = [];
+
+        const loopChildren = ( children: { [x: string]: CommandComponentContextProps; } ) => {
+            for ( const childName in children ) {
+                const child = children[ childName ];
+
+                if ( child.getComponentName() === componentName ) {
+                    const childComponent = useCommanderComponent( componentName, child );
+
+                    newChildrenComponents.push( childComponent );
+                }
+
+                if ( child.children ) {
+                    loopChildren( child.children );
+                }
+            }
+        };
+
+        loopChildren( children );
+
+        setChildrenComponents( newChildrenComponents );
+    }, [ componentContext, componentName ] );
+
+    return childrenComponents;
 }
 
 export function useCommanderState<TState>( componentName: string, extendInitialState?: Partial<TState> ) {
