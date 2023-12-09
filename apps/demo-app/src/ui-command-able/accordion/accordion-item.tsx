@@ -4,7 +4,7 @@ import { withCommands } from "@infinigrow/commander/with-commands";
 
 import { CommandBase } from "@infinigrow/commander/command-base";
 
-import { useCommand } from "@infinigrow/commander/use-commands";
+import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item-menu";
 
@@ -35,8 +35,8 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
 
     const ref = React.useRef<HTMLDivElement>( null );
 
-    const editableCommand = useCommand( "UI/AccordionItem/EditableTitle" ),
-        onTitleChangedCommand = useCommand( "UI/AccordionItem/OnTitleChanged" );
+    const editableCommand = useCommanderCommand( "UI/AccordionItem/EditableTitle" ),
+        onTitleChangedCommand = useCommanderCommand( "UI/AccordionItem/OnTitleChanged" );
 
     const isCollapsed = React.useMemo( () => {
         return props.collapsedState === "detached";

@@ -3,7 +3,7 @@ import React from "react";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
-import { useComponentCommands } from "@infinigrow/commander/use-commands";
+import { useCommanderComponent } from "@infinigrow/commander/use-commands";
 
 import "@infinigrow/demo-app/src/ui-command-able/accordion/_accordion.scss";
 
@@ -41,7 +41,7 @@ const Accordion: CommandFunctionComponent<AccordionProps> = ( props ) => {
         children = children[ 0 ].props.children!;
     }
 
-    const commands = useComponentCommands( "UI/Accordion" );
+    const commands = useCommanderComponent( "UI/Accordion" );
 
     let [ selected, setSelected ] = React.useState<{
         [ key: string ]: boolean

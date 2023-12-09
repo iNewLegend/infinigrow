@@ -4,7 +4,7 @@ import { Button } from "@nextui-org/button";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
 
-import { useCommand } from "@infinigrow/commander/use-commands";
+import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { CommandBase } from "@infinigrow/commander/command-base";
 
@@ -13,7 +13,7 @@ import { Plus } from "@infinigrow/demo-app/src/ui-theme/symbols";
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 const AddChannel: CommandFunctionComponent<void> = () => {
-    const command = useCommand( "App/AddChannel" );
+    const command = useCommanderCommand( "App/AddChannel" );
 
     return (
         <div>

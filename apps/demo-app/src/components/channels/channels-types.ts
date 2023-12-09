@@ -9,3 +9,8 @@ export type ChannelsListComponent = React.ReactComponentElement<typeof ChannelsL
 export interface ChannelListProps {
     children: ChannelItemComponent[] | ChannelItemComponent;
 }
+
+export interface ChannelListState extends React.ComponentState {
+    channels: ChannelItemComponent[];
+    selected: { [ key: string ]: boolean };
+}

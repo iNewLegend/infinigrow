@@ -2,7 +2,7 @@ import React from "react";
 
 import { Select, SelectItem } from "@nextui-org/select";
 
-import { useCommand } from "@infinigrow/commander/use-commands";
+import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
@@ -41,7 +41,7 @@ export function getChannelBudgetFrequencyLabel( frequency: ChannelBudgetFrequenc
 export function ChannelBudgetFrequency( props: ChannelBudgetFrequencyProps ) {
     const { frequency } = props;
 
-    const command = useCommand( "App/ChannelItem/SetFrequency" );
+    const command = useCommanderCommand( "App/ChannelItem/SetFrequency" );
 
     const selectProps: Partial<SelectProps> = {
         ... DEFAULT_PROPS,

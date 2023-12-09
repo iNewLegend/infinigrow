@@ -4,7 +4,7 @@ import moment from "moment";
 
 import { Input } from "@nextui-org/input";
 
-import { useComponentCommands } from "@infinigrow/commander/use-commands";
+import { useCommanderComponent } from "@infinigrow/commander/use-commands";
 
 import type { InputProps } from "@nextui-org/input";
 
@@ -38,7 +38,7 @@ function getBreaks(
     frequency: ChannelBudgetFrequencyProps["frequency"],
     baseline: string,
     allocation: BudgetAllocationType,
-    commands: ReturnType<typeof useComponentCommands>
+    commands: ReturnType<typeof useCommanderComponent>
 ) {
     const breaks: React.JSX.Element[] = [];
 
@@ -118,7 +118,7 @@ function getBreaks(
 }
 
 export const ChannelBreakdowns: React.FC = () => {
-    const commands = useComponentCommands( "App/ChannelItem" ),
+    const commands = useCommanderComponent( "App/ChannelItem" ),
         state = commands.getState<ChannelState>();
 
     // Those are initial values, they are not "live" values.

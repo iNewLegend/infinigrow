@@ -3,7 +3,7 @@ import React from "react";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
-import { useComponentCommands } from "@infinigrow/commander/use-commands";
+import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/use-commands";
 
 import { channelsListInteractions } from "@infinigrow/demo-app/src/components/channels/channels-list-interactions";
 
@@ -16,12 +16,12 @@ import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import type { ChannelListProps } from "@infinigrow/demo-app/src/components/channels/channels-types";
+import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 export function toAccordionItem(
     channel: ChannelItemComponent,
-    channelsCommands: ReturnType<typeof useComponentCommands>,
+    channelsCommands: ReturnType<typeof useCommanderComponent>,
     index: number,
 ): React.ReactComponentElement<typeof AccordionItem> {
     const channelInternalProps = {
@@ -62,7 +62,7 @@ export function toAccordionItem(
                           key={ "channel-" + channel.props.id + "-accordion-item-" + index.toString() }/>;
 }
 
-export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props ) => {
+export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props, state ) => {
     let channels: ChannelItemComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
     // Helps to detect development errors.
@@ -70,25 +70,29 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props 
         throw new Error( `<${ ChannelsList.name }> can accept only <${ ChannelItem.name }> as children` );
     }
 
-    const [ selected, setSelected ] = React.useState<{ [ key: string ]: boolean }>( {} );
+    const [ channelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList", {
+        channels,
+    });
 
-    const [ channelsState, setChannelsState ] = React.useState<ChannelItemComponent[]>( channels );
+    const setSelected = ( selected: { key: boolean } ) => {
+        setChannelsListState( { selected } );
+    };
 
-    const channelsCommands = useComponentCommands( "App/ChannelsList" );
+    const channelsCommands = useCommanderComponent( "App/ChannelsList" );
 
-    channelsListInteractions( {
-        setSelected,
-        setChannelsState
-    } );
+    channelsListInteractions();
 
     return (
-        <Accordion selected={ selected } setSelected={ setSelected }>
-            { channelsState.map( ( i, index ) => toAccordionItem( i, channelsCommands, index ) ) }
+        <Accordion selected={ channelsListState.selected } setSelected={ setSelected }>
+            { channelsListState.channels.map( ( i, index ) => toAccordionItem( i, channelsCommands, index ) ) }
         </Accordion>
     );
 };
 
-const $$ = withCommands( "App/ChannelsList", ChannelsList, [
+const $$ = withCommands<ChannelListState>( "App/ChannelsList", ChannelsList, {
+    channels: [],
+    selected: {},
+}, [
     class EditRequest extends CommandBase {
         public static getName() {
             return "App/ChannelsList/EditRequest";

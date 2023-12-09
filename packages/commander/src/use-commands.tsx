@@ -12,10 +12,30 @@ import commandsManager from "@infinigrow/commander/commands-manager";
 
 import type { CommandArgs, CommandComponentContextProps } from "@infinigrow/commander/types";
 
+function getSafeContext( componentName: string, context?: CommandComponentContextProps ) {
+    function maybeWrongContext( componentName: string, componentNameUnique: string ) {
+        if ( componentName === componentNameUnique ) {
+            return;
+        }
+        throw new Error(
+            `You are not in: '${ componentName }', you are in '${ componentNameUnique }' which is not your context\n` +
+            "If you are trying to reach sub-component context, it has to rendered, before you can use it\n",
+        );
+    }
+
+    const componentContext = context || React.useContext( ComponentIdContext );
+
+    const componentNameContext = componentContext.getComponentName();
+
+    maybeWrongContext( componentName, componentNameContext );
+
+    return componentContext;
+}
+
 /**
  * Custom hook to create a command handler for a specific command.
  */
-export function useCommand( commandName: string ) {
+export function useCommanderCommand( commandName: string ) {
     const componentContext = React.useContext( ComponentIdContext );
 
     // Get component context
@@ -35,6 +55,7 @@ export function useCommand( commandName: string ) {
         run: ( args: CommandArgs, callback?: ( result: any ) => void ) => commandsManager.run( id, args, callback ),
         hook: ( callback: ( result: any, args?: CommandArgs ) => void ) => commandsManager.hook( id, callback ),
 
+        // TODO: Remove.
         getContext: () => commandSignalContext,
     };
 }
@@ -42,22 +63,8 @@ export function useCommand( commandName: string ) {
 /**
  * Custom hook to create a command handler for a specific component.
  */
-export function useComponentCommands( componentName: string, context?: CommandComponentContextProps  ) {
-    function maybeWrongContext( componentName: string, componentNameUnique: string ) {
-        if ( componentName === componentNameUnique ) {
-            return;
-        }
-        throw new Error(
-            `You are not in: '${ componentName }', you are in '${ componentNameUnique }' which is not your context\n` +
-            "If you are trying to reach sub-component context, it has to rendered, before you can use it\n",
-        );
-    }
-
-    const componentContext = context || React.useContext( ComponentIdContext );
-
-    const componentNameContext = componentContext.getComponentName();
-
-    maybeWrongContext( componentName, componentNameContext );
+export function useCommanderComponent( componentName: string, context?: CommandComponentContextProps  ) {
+    const componentContext = getSafeContext( componentName, context );
 
     const id = componentContext.getNameUnique();
 
@@ -69,11 +76,44 @@ export function useComponentCommands( componentName: string, context?: CommandCo
         unhook: ( commandName: string ) =>
             commandsManager.unhook( { commandName, componentName, componentNameUnique: id } ),
 
+        // TODO: Remove.
         getId: () => id,
         getKey: () => core[ GET_INTERNAL_SYMBOL ]( id ).key,
         getContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
         getState: <TState extends React.ComponentState>() => core[ GET_INTERNAL_SYMBOL ]( id ).getState() as TState,
     };
+}
+
+export function useCommanderState<TState>( componentName: string, extendInitialState?: Partial<TState> ) {
+    const componentContext = getSafeContext( componentName );
+
+    const id = componentContext.getNameUnique();
+
+    const internalContext = core[ GET_INTERNAL_SYMBOL ]( id );
+
+    const initialStateExtendedRef = React.useRef( false );
+
+    if ( extendInitialState && ! initialStateExtendedRef.current ) {
+        internalContext.extendInitialState = extendInitialState;
+
+        initialStateExtendedRef.current = true;
+    }
+
+    const stateRef = {};
+
+    Object.defineProperty( stateRef, "getState", {
+        value: () => internalContext.getState(),
+        writable: false,
+    } );
+
+    return [
+        internalContext.getState() as TState,
+        ( state: Partial<TState>, callback?: () => void ) => {
+            const internalContext = core[ GET_INTERNAL_SYMBOL ]( id );
+
+            return internalContext.setState<Partial<TState>>( state, callback );
+        }
+    ] as const;
 }
 
 /**

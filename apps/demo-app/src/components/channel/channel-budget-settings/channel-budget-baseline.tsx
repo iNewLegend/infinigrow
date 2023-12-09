@@ -2,7 +2,7 @@ import React from "react";
 
 import { Input } from "@nextui-org/input";
 
-import { useCommand } from "@infinigrow/commander/use-commands";
+import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
@@ -30,7 +30,7 @@ const DEFAULT_PROPS: Partial<InputProps> = {
 export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
     const { frequency, allocation, baseline } = props;
 
-    const command = useCommand( "App/ChannelItem/SetBaseline" );
+    const command = useCommanderCommand( "App/ChannelItem/SetBaseline" );
 
     const inputProps: InputProps = {
         ... DEFAULT_PROPS,

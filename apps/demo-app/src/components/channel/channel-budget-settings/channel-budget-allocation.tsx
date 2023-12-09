@@ -2,7 +2,7 @@ import React from "react";
 
 import { ButtonGroup, Button } from "@nextui-org/button";
 
-import { useCommand } from "@infinigrow/commander/use-commands";
+import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
@@ -34,7 +34,7 @@ export function ChannelBudgetAllocationButton( props: ButtonProps & {
 } ) {
     const { current, allocation, ... buttonProps } = props;
 
-    const command = useCommand( "App/ChannelItem/SetAllocation" );
+    const command = useCommanderCommand( "App/ChannelItem/SetAllocation" );
 
     return (
         <Button

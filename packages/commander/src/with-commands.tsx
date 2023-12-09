@@ -49,7 +49,7 @@ export function withCommands(
     ... args: any[]
 ): CommandFunctionComponent {
     let commands: CommandNewInstanceWithArgs[],
-        state: React.ComponentState = {};
+        state: React.ComponentState;
 
     if ( args.length === 1 ) {
         commands = args[ 0 ];
@@ -68,7 +68,17 @@ export function withCommands(
 
         // This approach give us ability to inject second argument to the functional component.
         Component = function ( props: any ) {
-            const currentState = core[ GET_INTERNAL_SYMBOL ]( contextRef.getNameUnique() ).getState();
+            const internalContext = core[ GET_INTERNAL_SYMBOL ]( contextRef.getNameUnique() );
+
+            const currentState = internalContext.getState();
+
+            if ( internalContext.extendInitialState ) {
+                for ( const key in internalContext.extendInitialState ) {
+                    ( currentState as any )[ key ] = internalContext.extendInitialState[ key ];
+                }
+
+               delete internalContext.extendInitialState;
+            }
 
             return originalFunction( props, currentState );
         };
@@ -78,9 +88,7 @@ export function withCommands(
         Component.displayName = `withInjectedState(${ originalName })`;
     }
 
-    const WrappedComponent = class WrappedComponent extends React.PureComponent<any, {
-        componentNameUnique: string
-    }> {
+    const WrappedComponent = class WrappedComponent extends React.PureComponent<any, React.ComponentState> {
         public static displayName = `withCommands(${ componentName })`;
 
         public static contextType = ComponentIdContext;
@@ -113,9 +121,9 @@ export function withCommands(
                 componentNameUnique: id,
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
-                getState: () => this.state,
-                setState: ( ... args ) => {
-                    return this.setState( ... args );
+                getState: () => this.state as Readonly<React.ComponentState>,
+                setState: ( state, callback ) => {
+                    return this.setState( state, callback );
                 }
             } );
         }

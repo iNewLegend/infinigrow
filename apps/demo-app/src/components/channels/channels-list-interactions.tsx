@@ -2,17 +2,19 @@ import React from "react";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
 
-import { useComponentCommands, useAnyComponentCommands } from "@infinigrow/commander/use-commands";
+import { useCommanderComponent, useAnyComponentCommands, useCommanderState } from "@infinigrow/commander/use-commands";
 
 import { ChannelItem } from "@infinigrow/demo-app/src/components/channel/channel-item";
+
+import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 
 import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 // On channel list, request edit title name
 function onEditRequest(
     channel: ChannelItemComponent,
-    setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
-    channelsCommands: ReturnType<typeof useComponentCommands>,
+    setSelected: ( selected: { [ key: string ]: boolean } ) => void,
+    channelsCommands: ReturnType<typeof useCommanderComponent>,
     accordionItemCommands: ReturnType<typeof useAnyComponentCommands>,
 ) {
     // Select the channel (trigger accordion item selection)
@@ -50,29 +52,32 @@ function onEditRequest(
 
 function onRemoveRequest(
     channel: ChannelItemComponent,
-    setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
+    channelsState: ChannelItemComponent[],
+    setChannelsState: ( channels: ChannelItemComponent[] ) => void,
 ) {
     // Remove the channel from the list
-    setChannelsState( ( channels ) => channels.filter( ( i ) => i.props.id !== channel.props.id ) );
+    setChannelsState( channelsState.filter( ( c ) => c.props.id !== channel.props.id ) );
 }
 
 function onAddRequest(
-    setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
+    channelsState: ChannelItemComponent[],
+    setChannelsState: ( channels: ChannelItemComponent[] ) => void,
 ) {
     // Add a new channel to the list
-    setChannelsState( ( channels ) => [ ... channels,
+    setChannelsState( [ ... channelsState,
         // @ts-ignore
-        <ChannelItem key={ Math.random() } id={ Math.random() } name={"New Channel" + channels.length } icon={channels[0].props.icon} />
+        <ChannelItem key={ Math.random() } id={ Math.random() } name={ "New Channel" + channelsState.length }
+                     icon={ channelsState[ 0 ].props.icon }/>
     ] );
 }
 
-export function channelsListInteractions( args: {
-    setSelected: React.Dispatch<React.SetStateAction<{ [ key: string ]: boolean; }>>,
-    setChannelsState: React.Dispatch<React.SetStateAction<ChannelItemComponent[]>>,
-}) {
-    const { setSelected, setChannelsState } = args;
+export function channelsListInteractions() {
+    const [ channelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
-    const channelsCommands = useComponentCommands( "App/ChannelsList" );
+    const setChannelsState = ( channels: ChannelItemComponent[] ) => setChannelsListState( { channels } );
+    const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
+
+    const channelsCommands = useCommanderComponent( "App/ChannelsList" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
@@ -83,7 +88,7 @@ export function channelsListInteractions( args: {
             onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
 
         channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
-            onRemoveRequest( args.channel, setChannelsState ) );
+            onRemoveRequest( args.channel,  channelsListState.channels, setChannelsState ) );
 
         const AddChannelCommand = {
             commandName: "App/AddChannel",
@@ -91,7 +96,8 @@ export function channelsListInteractions( args: {
             componentNameUnique: addChannelCommand[ 0 ].componentNameUnique,
         };
 
-        commandsManager.hook( AddChannelCommand, () => onAddRequest( setChannelsState ) );
+        commandsManager.hook( AddChannelCommand, () =>
+            onAddRequest( channelsListState.channels, setChannelsState ) );
 
         return () => {
             // Since we are using `useAnyComponentCommands` we have to unhook manually
