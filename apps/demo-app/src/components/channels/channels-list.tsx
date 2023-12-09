@@ -10,11 +10,12 @@ import { channelsListInteractions } from "@infinigrow/demo-app/src/components/ch
 import ChannelItem from "@infinigrow/demo-app/src/components/channel/channel-item";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
+
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import type { CommandFunctionComponent } from "@infinigrow/commander/types";
-
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
+
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
@@ -24,9 +25,7 @@ export function toAccordionItem(
     channelsCommands: ReturnType<typeof useCommanderComponent>,
     index: number,
 ): React.ReactComponentElement<typeof AccordionItem> {
-    const channelInternalProps = {
-        name: channel.props.name,
-    };
+    const channelInternalProps = {};
 
     // Omit `collapsedState` and `setCollapsedState` those are extended by `renderExtendAccordionItem`
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
@@ -62,7 +61,7 @@ export function toAccordionItem(
                           key={ "channel-" + channel.props.id + "-accordion-item-" + index.toString() }/>;
 }
 
-export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props, state ) => {
+export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelListState> = ( props ) => {
     let channels: ChannelItemComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
     // Helps to detect development errors.
@@ -71,8 +70,16 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props,
     }
 
     const [ channelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList", {
-        channels,
-    });
+        channels: channels.map( ( channel ) => {
+            return {
+                ... channel,
+
+                data: {
+                    name: channel.props.name,
+                },
+            };
+        } ),
+    } );
 
     const setSelected = ( selected: { key: boolean } ) => {
         setChannelsListState( { selected } );
@@ -89,7 +96,7 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props,
     );
 };
 
-const $$ = withCommands<ChannelListState>( "App/ChannelsList", ChannelsList, {
+const $$ = withCommands<ChannelListProps, ChannelListState>( "App/ChannelsList", ChannelsList, {
     channels: [],
     selected: {},
 }, [
@@ -98,14 +105,34 @@ const $$ = withCommands<ChannelListState>( "App/ChannelsList", ChannelsList, {
             return "App/ChannelsList/EditRequest";
         }
     },
-    class OnEditName extends CommandBase {
-        public static getName() {
-            return "App/ChannelsList/OnEditName";
-        }
-    },
     class Remove extends CommandBase {
         public static getName() {
             return "App/ChannelsList/RemoveRequest";
+        }
+    },
+    class SetName extends CommandBase<ChannelListState> {
+        public static getName() {
+            return "App/ChannelsList/SetName";
+        }
+
+        public apply( args: { id: string, name: string } ) {
+            const channels = [ ... this.state.channels ]; // Create a copy of the channels array
+
+            const channelIndex = channels.findIndex( ( c ) => c.props.id === args.id );
+
+            if ( channelIndex !== -1 ) {
+                // Create a new channel object with the updated data & replace it in the channels array
+                channels[ channelIndex ] = {
+                    ... channels[ channelIndex ],
+                    data: {
+                        ... channels[ channelIndex ].data,
+                        name: args.name,
+                    },
+                };
+
+                return this.setState( { channels } );
+            }
+
         }
     }
 ] );

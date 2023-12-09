@@ -2,7 +2,12 @@ import React from "react";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
 
-import { useCommanderComponent, useAnyComponentCommands, useCommanderState } from "@infinigrow/commander/use-commands";
+import {
+    useCommanderComponent,
+    useAnyComponentCommands,
+    useCommanderState,
+    useCommanderChildrenComponents
+} from "@infinigrow/commander/use-commands";
 
 import { ChannelItem } from "@infinigrow/demo-app/src/components/channel/channel-item";
 
@@ -15,31 +20,19 @@ function onEditRequest(
     channel: ChannelItemComponent,
     setSelected: ( selected: { [ key: string ]: boolean } ) => void,
     channelsCommands: ReturnType<typeof useCommanderComponent>,
-    accordionItemCommands: ReturnType<typeof useAnyComponentCommands>,
+    accordionItemCommands: ReturnType<typeof useCommanderChildrenComponents>,
 ) {
     // Select the channel (trigger accordion item selection)
     setSelected( { [ channel.props.id ]: true } );
 
-    accordionItemCommands.some( ( command ) => {
-        if ( command.props.itemKey === channel.props.id ) {
-            const editAbleId = {
-                commandName: "UI/AccordionItem/EditableTitle",
-                componentName: "UI/AccordionItem",
-                componentNameUnique: command.componentNameUnique,
-            };
-
-            const onTitleChangedId = {
-                commandName: "UI/AccordionItem/OnTitleChanged",
-                componentName: "UI/AccordionItem",
-                componentNameUnique: command.componentNameUnique,
-            };
-
+    accordionItemCommands.forEach( ( command ) => {
+        if ( command.getInternalContext().props.itemKey === channel.props.id ) {
             // Tell accordion to enter edit mode
-            commandsManager.run( editAbleId, { state: true } );
+            command.run( "UI/AccordionItem/EditableTitle", { state: true } );
 
             // Hook on title changed, run command within the channel list, to inform about the change
-            commandsManager.hook( onTitleChangedId, ( result, args ) => {
-                channelsCommands.run( "App/ChannelsList/OnEditName", {
+            command.hook( "UI/AccordionItem/OnTitleChanged", ( result, args ) => {
+                channelsCommands.run( "App/ChannelsList/SetName", {
                     id: args!.itemKey,
                     name: args!.title,
                 } );
@@ -77,12 +70,17 @@ export function channelsListInteractions() {
     const setChannelsState = ( channels: ChannelItemComponent[] ) => setChannelsListState( { channels } );
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
 
-    const channelsCommands = useCommanderComponent( "App/ChannelsList" );
+    const channelsCommands = useCommanderComponent( "App/ChannelsList" ),
+        accordionItemCommands = useCommanderChildrenComponents( "UI/AccordionItem" );
 
     // Once each accordion item is rendered, we can attach selection handlers
     React.useEffect( () => {
-        const accordionItemCommands = useAnyComponentCommands( "UI/AccordionItem" ),
-            addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
+        // Only once all accordion items are rendered
+        if ( ! accordionItemCommands.length ) {
+            return;
+        }
+
+        const addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
 
         channelsCommands.hook( "App/ChannelsList/EditRequest", ( r, args: any ) =>
             onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
@@ -102,7 +100,6 @@ export function channelsListInteractions() {
         return () => {
             // Since we are using `useAnyComponentCommands` we have to unhook manually
             commandsManager.unhookWithinComponent( "App/AddChannel" );
-            commandsManager.unhookWithinComponent( "UI/AccordionItem" );
         };
-    }, [] );
+    }, [ accordionItemCommands ] );
 }

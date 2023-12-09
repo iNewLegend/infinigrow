@@ -17,7 +17,7 @@ import { formatNumericInput } from "@infinigrow/demo-app/src/components/channel/
 
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
 
-import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 const initialState: ChannelState = {
     frequency: "annually",
@@ -25,7 +25,7 @@ const initialState: ChannelState = {
     allocation: "equal"
 };
 
-export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props, state ) => {
+export const ChannelItem: CommandFunctionComponent<any, ChannelState> = ( props, state ) => {
     const { frequency, baseline, allocation } = state;
 
     return (
@@ -48,7 +48,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps> = ( props, 
     );
 };
 
-const $$ = withCommands<ChannelState>( "App/ChannelItem", ChannelItem, initialState, [
+const $$ = withCommands<any, ChannelState>( "App/ChannelItem", ChannelItem, initialState, [
     class SetAllocation extends CommandBase {
         public static getName() {
             return "App/ChannelItem/SetAllocation";
