@@ -17,6 +17,9 @@ export interface ChannelState extends React.ComponentState {
 }
 
 export interface ChannelItemProps {
+    id: string;
+    icon: string;
+    name: string;
 }
 
 export interface ChannelDataState {

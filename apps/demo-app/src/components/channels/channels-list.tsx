@@ -25,13 +25,11 @@ export function toAccordionItem(
     channelsCommands: ReturnType<typeof useCommanderComponent>,
     index: number,
 ): React.ReactComponentElement<typeof AccordionItem> {
-    const channelInternalProps = {};
-
     // Omit `collapsedState` and `setCollapsedState` those are extended by `renderExtendAccordionItem`
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
         itemKey: channel.props.id,
 
-        children: <ChannelItem { ... channelInternalProps } key={ channel.props.id }/>,
+        children: <ChannelItem { ... channel.props } key={ channel.props.id }/>,
         heading: {
             title: channel.props.name,
             icon: channel.props.icon,
