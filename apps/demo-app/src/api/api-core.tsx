@@ -111,7 +111,8 @@ export class APICore {
         const moduleName = module.getName();
 
         if ( this.modules[ moduleName ] ) {
-            throw new Error( `API module ${ moduleName } already registered` );
+            // TODO: Enable when hot reloading is implemented
+            // throw new Error( `API module ${ moduleName } already registered` );
         }
 
         this.modules[ moduleName ] = new module( this );

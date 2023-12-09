@@ -1,5 +1,7 @@
 import React from "react";
 
+import { INTERNAL_ON_LOAD } from "@infinigrow/commander/constants";
+
 import { wrapPromiseSuspendable } from "@infinigrow/demo-app/src/api/api-utils.ts";
 
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core.tsx";
@@ -13,6 +15,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
     private readonly api: APICore;
 
     private readonly apiModule: APIModuleBase;
+
     private readonly element;
 
     public static setAPI( api: APICore ) {
@@ -22,9 +25,9 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
     public constructor( props: APIComponentProps ) {
         super( props );
 
-        this.api = ( this.constructor as typeof APIComponent).api;
+        this.api = ( this.constructor as typeof APIComponent ).api;
 
-        if ( !this.props.module ) {
+        if ( ! this.props.module ) {
             throw new Error( "Parent <API.Component> should have 'module' prop" );
         }
 
@@ -51,7 +54,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             const children = await Promise.all( parent.props.children.map( async ( key: React.Key, index: number ) => {
                 const childProps = await this.apiModule.getProps( childrenType.getName(), { key } );
 
-                if ( !childProps.key ) {
+                if ( ! childProps.key ) {
                     childProps.key = index;
                 }
 
@@ -69,17 +72,31 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
         const Component = () => {
             const data = resource.read();
 
-            return (
-                <data.element.type>
-                    { data.children }
-                </data.element.type>
-            );
+            const internalProps = {
+                [ INTERNAL_ON_LOAD ]: ( context: any ) => this.apiModule.mountInternal( this, context )
+            };
+
+            const mount = () => {
+                return (
+                    <data.element.type { ... internalProps }>
+                        { data.children }
+                    </data.element.type>
+                );
+            };
+
+            return mount();
         };
 
         return (
-            <React.Suspense fallback={ this.props.fallback || <p>Loading</p> }>
-                <Component />
+
+            <React.Suspense fallback={
+                this
+                    .props
+                    .fallback
+                || <p>Loading</p> }>
+                <Component/>
             </React.Suspense>
         );
     }
-};
+}
+;

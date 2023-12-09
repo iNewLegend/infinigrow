@@ -1,6 +1,10 @@
 import type React from "react";
 
+import type { APIComponent } from "@infinigrow/demo-app/src/api/api-component";
+
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core";
+
+import type { CommandSingleComponentContext } from "@infinigrow/commander/types";
 
 export abstract class APIModuleBase {
     private routes: Map<string, Map<string, {
@@ -14,17 +18,6 @@ export abstract class APIModuleBase {
 
     public constructor( protected api: APICore ) {
 
-    }
-
-    protected register( method: string, name: string, path: string, handler: ( ... args: any[] ) => Promise<any> ): void {
-        if ( ! this.routes.has( method ) ) {
-            this.routes.set( method, new Map() );
-        }
-
-        this.routes.get( method )!.set( name, {
-            handler,
-            path
-        } );
     }
 
     public async getProps( element: React.ReactElement | string, args?: any ) {
@@ -44,5 +37,22 @@ export abstract class APIModuleBase {
 
         return this.api.fetch( "GET", route.path, args, route.handler );
     }
+
+    protected register( method: string, name: string, path: string, handler: ( ... args: any[] ) => Promise<any> ): void {
+        if ( ! this.routes.has( method ) ) {
+            this.routes.set( method, new Map() );
+        }
+
+        this.routes.get( method )!.set( name, {
+            handler,
+            path
+        } );
+    }
+
+    public mountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
+        this.mount?.( component, context );
+    }
+
+    protected mount?( component: APIComponent, context: CommandSingleComponentContext ): void;
 }
 
