@@ -42,6 +42,10 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         return props.collapsedState === "detached";
     }, [ props.collapsedState ] );
 
+    const runOnTitleChangedCommand = ( newTitle: string ) => {
+        onTitleChangedCommand.run( { title: newTitle, itemKey: props.itemKey } );
+    };
+
     // If selection detached from the element, stop editing
     React.useEffect( () => {
         if ( ! isEditing || ! ref.current || ! isCollapsed ) {
@@ -51,6 +55,14 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         ref.current.contentEditable = "false";
     }, [ isCollapsed ] );
 
+    // On accordion enable editing, set editing mode is on
+    React.useEffect( () => {
+        editableCommand.hook( ( result, args ) => {
+            setIsEditing( args!.state );
+        } );
+    }, [ setIsEditing ] );
+
+    // On enter, stop editing
     function onKeyPress( e: React.KeyboardEvent<HTMLSpanElement> ) {
         if ( ! isEditing ) {
             return;
@@ -62,20 +74,23 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
 
             setIsEditing( false );
 
-            onTitleChangedCommand.run( { title: e.currentTarget.innerText } );
+            runOnTitleChangedCommand( e.currentTarget.innerText );
         }
     }
 
+    // Start editing on click
     function onClick( e: React.MouseEvent<HTMLSpanElement, MouseEvent> ) {
         if ( ! isEditing ) {
             return;
         }
+
         e.stopPropagation();
         e.preventDefault();
 
         e.currentTarget.focus();
     }
 
+    // On focus capture, set flag to await for release/blur.
     function onFocusCapture() {
         if ( ! isEditing ) {
             return;
@@ -84,6 +99,7 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         setIsFocusCaptured( true );
     }
 
+    // If focus was captured, and blur happened, stop editing
     function onBlur( e: React.FocusEvent<HTMLSpanElement> ) {
         if ( ! isEditing ) {
             return;
@@ -93,15 +109,9 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
             setIsFocusCaptured( false );
             setIsEditing( false );
 
-            onTitleChangedCommand.run( { title: e.currentTarget.innerText } );
+            runOnTitleChangedCommand( e.currentTarget.innerText );
         }
     }
-
-    React.useEffect( () => {
-        editableCommand.hook( ( result, args ) => {
-            setIsEditing( args!.state );
-        } );
-    }, [ setIsEditing ] );
 
     return <span
         className="accordion-item-title"

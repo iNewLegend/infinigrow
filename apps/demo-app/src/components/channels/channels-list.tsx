@@ -5,7 +5,7 @@ import { CommandBase } from "@infinigrow/commander/command-base";
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { useComponentCommands } from "@infinigrow/commander/use-commands";
 
-import { channelsInteractions } from "@infinigrow/demo-app/src/components/channels/channels-interactions";
+import { channelsListInteractions } from "@infinigrow/demo-app/src/components/channels/channels-list-interactions";
 
 import ChannelItem from "@infinigrow/demo-app/src/components/channel/channel-item";
 
@@ -49,7 +49,7 @@ export function toAccordionItem(
                 label: "Remove",
                 color: "danger",
                 action: () => channelsCommands.run(
-                    "App/ChannelsList/Remove",
+                    "App/ChannelsList/RemoveRequest",
                     { channel, }
                 ),
             },
@@ -76,7 +76,7 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps> = ( props 
 
     const channelsCommands = useComponentCommands( "App/ChannelsList" );
 
-    channelsInteractions( {
+    channelsListInteractions( {
         setSelected,
         setChannelsState
     } );
@@ -94,9 +94,14 @@ const $$ = withCommands( "App/ChannelsList", ChannelsList, [
             return "App/ChannelsList/EditRequest";
         }
     },
+    class OnEditName extends CommandBase {
+        public static getName() {
+            return "App/ChannelsList/OnEditName";
+        }
+    },
     class Remove extends CommandBase {
         public static getName() {
-            return "App/ChannelsList/Remove";
+            return "App/ChannelsList/RemoveRequest";
         }
     }
 ] );

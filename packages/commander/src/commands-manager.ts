@@ -129,6 +129,14 @@ class CommandsManager {
         return singleComponentContext.emitter.removeAllListeners( commandName );
     }
 
+    public unhookWithinComponent( componentNameUnique: string ) {
+        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique, true ) as CommandSingleComponentContext;
+
+        singleComponentContext && Object.keys( singleComponentContext.commands ).forEach( ( commandName ) => {
+            singleComponentContext.emitter.removeAllListeners( commandName );
+        } );
+    }
+
     public get( componentName: string ) {
         if ( ! this.commands[ componentName ] ) {
             throw new Error( `Component '${ componentName }' not registered` );
