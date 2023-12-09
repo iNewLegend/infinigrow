@@ -33,7 +33,7 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
     const [ isEditing, setIsEditing ] = React.useState( false ),
         [ isFocusCaptured, setIsFocusCaptured ] = React.useState( false );
 
-    const ref = React.useRef<HTMLDivElement>( null );
+    const ref = React.useRef<HTMLSpanElement>( null );
 
     const editableCommand = useCommanderCommand( "UI/AccordionItem/EditableTitle" ),
         onTitleChangedCommand = useCommanderCommand( "UI/AccordionItem/OnTitleChanged" );
@@ -59,6 +59,17 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
     React.useEffect( () => {
         editableCommand.hook( ( result, args ) => {
             setIsEditing( args!.state );
+
+            setTimeout( () => {
+                if ( ref.current ) {
+                    const currentName = ref.current.innerText = "";
+
+                    ref.current.focus();
+
+                    // Without this, the cursor will be at the start of the text
+                    ref.current.innerText = currentName;
+                }
+            }, 500 );
         } );
     }, [ setIsEditing ] );
 
