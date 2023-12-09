@@ -1,6 +1,10 @@
-export const REGISTER_INTERNAL_SYMBOL = Symbol( "REGISTER_INTERNAL" );
-export const UNREGISTER_INTERNAL_SYMBOL = Symbol( "UNREGISTER_INTERNAL" );
-export const GET_INTERNAL_SYMBOL = Symbol( "GET_INTERNAL_SYMBOL" );
-export const GET_INTERNAL_MATCH_SYMBOL = Symbol( "GET_INTERNAL_MATCH_SYMBOL" );
-export const LINK_COMPONENTS = Symbol( "LINK_COMPONENTS" );
-export const SET_TO_CONTEXT = Symbol( "SET_TO_CONTEXT" );
+// Same as https://github.com/facebook/react/blob/main/packages/react-dom-bindings/src/client/ReactDOMComponentTree.js#L39
+const randomKey = "__" + Math.random().toString( 36 ).slice( 2 );
+
+export const REGISTER_INTERNAL_SYMBOL = Symbol( "REGISTER_INTERNAL" + randomKey );
+export const UNREGISTER_INTERNAL_SYMBOL = Symbol( "UNREGISTER_INTERNAL" + randomKey );
+export const GET_INTERNAL_SYMBOL = Symbol( "GET_INTERNAL_SYMBOL" + randomKey );
+export const GET_INTERNAL_MATCH_SYMBOL = Symbol( "GET_INTERNAL_MATCH_SYMBOL" + randomKey );
+export const LINK_COMPONENTS = Symbol( "LINK_COMPONENTS" + randomKey );
+export const SET_TO_CONTEXT = Symbol( "SET_TO_CONTEXT" + randomKey );
+export const INTERNAL_ON_LOAD = "__internalOnLoad" + randomKey;

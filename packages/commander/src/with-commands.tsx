@@ -10,8 +10,10 @@ import {
     REGISTER_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
     LINK_COMPONENTS,
-    SET_TO_CONTEXT, GET_INTERNAL_SYMBOL
-} from "./_internal/constants.ts";
+    SET_TO_CONTEXT,
+    GET_INTERNAL_SYMBOL,
+    INTERNAL_ON_LOAD
+} from "./_internal/constants";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
 
@@ -75,10 +77,10 @@ export function withCommands(
 
             this.state = state;
 
-            this.registerContext();
+            this.registerInternalContext();
         }
 
-        private registerContext() {
+        private registerInternalContext() {
             const id = this.props.componentNameUnique;
 
             if ( commandsManager.isContextRegistered( id ) ) {
@@ -110,7 +112,7 @@ export function withCommands(
         public componentDidMount() {
             const id = this.props.componentNameUnique;
 
-            this.registerContext();
+            this.registerInternalContext();
 
             if ( this.props.children?.length ) {
                 const childKeys = React.Children.map( this.props.children, ( child ) => child.key );
@@ -127,6 +129,10 @@ export function withCommands(
                 const childKeys = React.Children.map( this.props.children, ( child ) => child.key );
 
                 core[ LINK_COMPONENTS ]( this.props.parentRef.current, [ this.props.componentNameUnique ], childKeys );
+            }
+
+            if ( this.props[ INTERNAL_ON_LOAD ] ) {
+                this.props[ INTERNAL_ON_LOAD ]( core[ GET_INTERNAL_SYMBOL ]( this.props.componentNameUnique ) );
             }
 
             return <Component { ... this.props } $$commands={ commandsManager }/>;
