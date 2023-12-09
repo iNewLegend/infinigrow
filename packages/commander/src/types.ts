@@ -32,8 +32,6 @@ export interface CommandSingleComponentContext {
     };
     componentNameUnique: string;
     componentName: string;
-    childrenIds: string[];
-    childKeys: React.Key[];
     key: React.Key;
     props: any;
     getState: () => React.ComponentState;

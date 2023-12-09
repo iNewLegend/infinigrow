@@ -72,7 +72,6 @@ export function useComponentCommands( componentName: string, context?: CommandCo
         getId: () => id,
         getKey: () => core[ GET_INTERNAL_SYMBOL ]( id ).key,
         getContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
-        getChildKeys: () => core[ GET_INTERNAL_SYMBOL ]( id ).childKeys,
         getState: <TState extends React.ComponentState>() => core[ GET_INTERNAL_SYMBOL ]( id ).getState() as TState,
     };
 }

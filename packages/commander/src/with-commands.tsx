@@ -18,7 +18,7 @@ import {
     INTERNAL_PROPS
 } from "./_internal/constants";
 
-import { ComponentIdContext } from "@infinigrow/commander/commands-context"
+import { ComponentIdContext } from "@infinigrow/commander/commands-context";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
 

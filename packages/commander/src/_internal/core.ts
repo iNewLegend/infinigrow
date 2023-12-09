@@ -3,7 +3,6 @@ import {
     REGISTER_INTERNAL_SYMBOL,
     UNREGISTER_INTERNAL_SYMBOL,
     GET_INTERNAL_SYMBOL,
-    LINK_COMPONENTS,
     SET_TO_CONTEXT,
     GET_INTERNAL_MATCH_SYMBOL
 } from "./constants.ts";
@@ -110,29 +109,6 @@ class Core {
         }
 
         throw new Error( `Component '${ componentName }' is not valid regex` );
-    }
-
-    // Links child components to a parent component
-    [ LINK_COMPONENTS ]( // eslint-disable-line @typescript-eslint/explicit-member-accessibility
-        componentNameUnique: string,
-        childrenIds: string[],
-        childKeys: React.Key[],
-    ): void {
-        this.__devDebug( `Setting children for component '${ componentNameUnique }' from the context ` );
-
-        // Check if the component is registered
-        if ( ! context[ componentNameUnique ] ) {
-            throw new Error( `Component '${ componentNameUnique }' not registered` );
-        }
-
-        context[ componentNameUnique ].childrenIds.push( ...childrenIds );
-        context[ componentNameUnique ].childKeys.push( ...childKeys );
-
-        // Array unique
-        context[ componentNameUnique ].childrenIds = [ ...new Set( context[ componentNameUnique ].childrenIds ) ];
-        context[ componentNameUnique ].childKeys = [ ...new Set( context[ componentNameUnique ].childKeys ) ];
-
-        core[ GET_INTERNAL_SYMBOL ]( componentNameUnique ).emitter.emit( "link-children" );
     }
 
     [ SET_TO_CONTEXT ]( // eslint-disable-line @typescript-eslint/explicit-member-accessibility
