@@ -34,7 +34,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
         this.apiModule = this.api.getModule( this.props.module );
 
         this.element = async () => {
-            const props = await this.apiModule.getProps( this.props.type.getName!() );
+            const props = await this.apiModule.getProps( this.props.type, this  );
 
             return React.createElement( this.props.type, props );
         };
@@ -50,13 +50,8 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
 
             const parent = await this.element();
 
-            // TODO: This kinda of logic should be in `api-channels-module` as `requestHandler` the other handler should be `responseHandler`
-            const children = await Promise.all( parent.props.children.map( async ( key: React.Key, index: number ) => {
-                const childProps = await this.apiModule.getProps( childrenType.getName(), { key } );
-
-                if ( ! childProps.key ) {
-                    childProps.key = index;
-                }
+            const children = await Promise.all ( parent.props.children.map( async ( child: any ) => {
+                const childProps = await this.apiModule.getProps( child.type, this, child.props );
 
                 return React.createElement( childrenType, childProps );
             } ) );

@@ -12,10 +12,17 @@ const storage = window.localStorage;
 if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
     storage.setItem( "__DEFAULT_STORAGE__", "true" );
 
-    storage.setItem( "/v1/channels", JSON.stringify( {
-        childrenType: "App/ChannelItem",
-        children: [ "1", "2" ],
-    } ) );
+    storage.setItem( "/v1/channels", JSON.stringify( [ {
+        key: "1",
+        id: "paid-reviews",
+        name: "Paid Reviews",
+        icon: AffiliateProgramPNG,
+    }, {
+        key: "2",
+        id: "free-reviews",
+        name: "Free Reviews",
+        icon: TestPNG,
+    } ] ) );
 
     storage.setItem( "/v1/channels/1", JSON.stringify( {
         key: "1",
@@ -53,7 +60,9 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
 
             const data = init?.body || "";
 
-            storage.setItem( path, data );
+            if ( typeof data === "string" ) {
+                storage.setItem( path, data );
+            }
 
             return Promise.resolve( new Response( data, baseInit ) );
         } else if ( method === "DELETE" ) {

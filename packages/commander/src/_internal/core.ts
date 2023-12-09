@@ -118,7 +118,7 @@ class Core {
         childrenIds: string[],
         childKeys: React.Key[],
     ): void {
-        // this.__devDebug( `Setting children for component '${ componentNameUnique }' from the context ` );
+        this.__devDebug( `Setting children for component '${ componentNameUnique }' from the context ` );
 
         // Check if the component is registered
         if ( ! context[ componentNameUnique ] ) {
@@ -162,6 +162,12 @@ class Core {
 const core = new Core();
 
 if ( import.meta.env.DEV ) {
+    if ( ( window as any ).__DEBUG__ ) {
+        core.__devDebug = ( ... args: any[] ) => {
+            console.log( ... args );
+        };
+    }
+
     core.__devGetContextLength = () => {
         return Object.keys( context ).length;
     };
@@ -172,10 +178,6 @@ if ( import.meta.env.DEV ) {
 
     core.__devGetContextValues = () => {
         return Object.values( context ).map( ( context ) => context );
-    };
-
-    core.__devDebug = ( ... args: any[] ) => {
-        console.log( ... args );
     };
 
     ( window as any ).$$core = core;

@@ -1,33 +1,39 @@
-import type React from "react";
-
 import type { APIComponent } from "@infinigrow/demo-app/src/api/api-component";
 
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core";
 
-import type { CommandSingleComponentContext } from "@infinigrow/commander/types";
+import type { CommandSingleComponentContext, CommandFunctionComponent } from "@infinigrow/commander/types";
+
+interface Route {
+    path: string;
+
+    handlers: {
+        requestHandler?: ( ... args: any[] ) => Promise<any>;
+        responseHandler?: ( ... args: any[] ) => Promise<any>;
+    }
+}
 
 export abstract class APIModuleBase {
-    private routes: Map<string, Map<string, {
-        handler: ( ... args: any[] ) => Promise<any>;
-        path: string;
-    }>> = new Map();
+    protected api: APICore;
+
+    private routes: Map<RequestInit["method"], Map<Route["path"], Route>> = new Map();
 
     public static getName(): string {
         throw new Error( "Please extend APIModuleBase and implement static getName()" );
     }
 
-    public constructor( protected api: APICore ) {
-
+    public constructor( api: APICore ) {
+        this.api = api;
     }
 
-    public async getProps( element: React.ReactElement | string, args?: any ) {
+    public mountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
+        this.mount?.( component, context );
+    }
+
+    public async getProps( element: CommandFunctionComponent, component: APIComponent, args?: any ) {
         let componentName: string;
 
-        if ( typeof element === "string" ) {
-            componentName = element;
-        } else {
-            componentName = element.props?.type.getName();
-        }
+        componentName = element.getName!();
 
         const route = this.routes.get( "GET" )?.get( componentName );
 
@@ -35,23 +41,36 @@ export abstract class APIModuleBase {
             throw new Error( `Cannot find route for ${ componentName }` );
         }
 
-        return this.api.fetch( "GET", route.path, args, route.handler );
+        const request = await route.handlers.requestHandler!( component, element, args );
+
+        return this.api.fetch( "GET", route.path, request, ( response ) => {
+            return route.handlers.responseHandler!( component, element, response );
+        } );
     }
 
-    protected register( method: string, name: string, path: string, handler: ( ... args: any[] ) => Promise<any> ): void {
+    protected register( method: string, name: string, route: Route | string ): void {
         if ( ! this.routes.has( method ) ) {
             this.routes.set( method, new Map() );
         }
 
-        this.routes.get( method )!.set( name, {
-            handler,
-            path
-        } );
+        if ( typeof route === "string" ) {
+            route = { path: route, handlers: {} };
+        }
+
+        if ( ! route.handlers.requestHandler ) {
+            route.handlers.requestHandler = this.requestHandler.bind( this );
+        }
+
+        if ( ! route.handlers.responseHandler ) {
+            route.handlers.responseHandler = this.responseHandler.bind( this );
+        }
+
+        this.routes.get( method )!.set( name, route );
     }
 
-    public mountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
-        this.mount?.( component, context );
-    }
+    protected abstract responseHandler( component: APIComponent, element: CommandFunctionComponent, response: Response ): Promise<any>;
+
+    protected abstract requestHandler( component: APIComponent, element: CommandFunctionComponent, request: any ): Promise<any>;
 
     protected mount?( component: APIComponent, context: CommandSingleComponentContext ): void;
 }
