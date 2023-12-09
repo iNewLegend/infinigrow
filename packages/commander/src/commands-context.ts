@@ -10,4 +10,5 @@ export const ComponentIdContext = React.createContext<CommandComponentContextPro
     getComponentName: () => {
         throw new Error( "ComponentCommandContext.Provider is not set. Using default getUniqueName function." );
     },
+    internalHandlers: undefined,
 } );

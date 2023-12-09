@@ -44,6 +44,8 @@ export interface CommandSingleComponentContext {
 export interface CommandComponentContextProps {
     getComponentName(): string;
     getNameUnique: () => string;
+
+    internalHandlers: any,
 }
 
 export type CommandArgs = {
