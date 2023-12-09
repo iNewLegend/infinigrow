@@ -66,7 +66,7 @@ class CommandsManager {
             throw new Error( `Command '${ commandName }' not registered for component '${ componentName }'` );
         }
 
-        core.__devDebug( `Commands.run() '${ commandName }' for component '${ componentNameUnique }'`, args );
+        console.log( `Commands.run() '${ commandName }' for component '${ componentNameUnique }'`, args );
 
         const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique );
 

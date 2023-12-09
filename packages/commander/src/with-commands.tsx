@@ -60,7 +60,7 @@ export function withCommands(
         throw new Error( "Invalid arguments" );
     }
 
-    let contextRef: CommandComponentContextProps;
+    let currentContext: CommandComponentContextProps;
 
     if ( state ) {
         const originalFunction = Component,
@@ -68,7 +68,7 @@ export function withCommands(
 
         // This approach give us ability to inject second argument to the functional component.
         Component = function ( props: any ) {
-            const internalContext = core[ GET_INTERNAL_SYMBOL ]( contextRef.getNameUnique() );
+            const internalContext = core[ GET_INTERNAL_SYMBOL ]( currentContext.getNameUnique() );
 
             const currentState = internalContext.getState();
 
@@ -77,7 +77,7 @@ export function withCommands(
                     ( currentState as any )[ key ] = internalContext.extendInitialState[ key ];
                 }
 
-               delete internalContext.extendInitialState;
+                delete internalContext.extendInitialState;
             }
 
             return originalFunction( props, currentState );
@@ -119,8 +119,12 @@ export function withCommands(
             core[ REGISTER_INTERNAL_SYMBOL ]( {
                 componentName,
                 componentNameUnique: id,
+
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
+
+                key: this.props.$$key,
+
                 getState: () => this.state as Readonly<React.ComponentState>,
                 setState: ( state, callback ) => {
                     return this.setState( state, callback );
@@ -161,14 +165,7 @@ export function withCommands(
 
             this.registerInternalContext();
 
-            // TODO: Delete this.
-            if ( this.props.children?.length ) {
-                const childKeys = React.Children.map( this.props.children, ( child ) => child.key );
-
-                core[ SET_TO_CONTEXT ]( id, { childKeys, props: this.props } );
-            } else {
-                core[ SET_TO_CONTEXT ]( id, { props: this.props } );
-            }
+            core[ SET_TO_CONTEXT ]( id, { props: this.props } );
 
             if ( this.context.internalHandlers[ INTERNAL_ON_MOUNT ] ) {
                 this.context.internalHandlers[ INTERNAL_ON_MOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
@@ -184,6 +181,35 @@ export function withCommands(
         }
     };
 
+    function handleAncestorContexts( context: CommandComponentContextProps ) {
+        const parentContext = React.useContext( ComponentIdContext );
+
+        if ( parentContext.internalHandlers ) {
+            context.parent = parentContext;
+        }
+
+        if ( context.parent ) {
+            if ( ! context.parent.children ) {
+                context.parent.children = {};
+            }
+            context.parent.children[ context.getNameUnique() ] = context;
+        }
+
+        React.useEffect( () => {
+            if ( currentContext.children ) {
+                for ( const key in currentContext.children ) {
+                    const child = currentContext.children[ key ];
+
+                    const internalContext = core[ GET_INTERNAL_SYMBOL ]( child.getNameUnique(), true );
+
+                    if ( ! internalContext ) {
+                        delete currentContext.children[ key ];
+                    }
+                }
+            }
+        }, [] );
+    }
+
     /**
      * React `useId` behave differently in production and development mode, because of `<React.StrictMode>`
      * https://github.com/facebook/react/issues/27103#issuecomment-1763359077
@@ -198,11 +224,13 @@ export function withCommands(
             internalHandlers: {},
         };
 
-        contextRef = context;
+        handleAncestorContexts( context );
+
+        currentContext = context;
 
         return (
             <ComponentIdProvider context={ context }>
-                <WrappedComponent { ... props }/>
+                <WrappedComponent { ... props } $$key={performance.now()}/>
             </ComponentIdProvider>
         );
     };

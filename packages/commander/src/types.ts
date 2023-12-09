@@ -45,6 +45,9 @@ export interface CommandSingleComponentContext {
 }
 
 export interface CommandComponentContextProps {
+    children?: { [ nameUnique: string ]: CommandComponentContextProps };
+    parent?: CommandComponentContextProps;
+
     getComponentName(): string;
     getNameUnique: () => string;
 
