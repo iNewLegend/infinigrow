@@ -1,8 +1,15 @@
 import React from "react";
 
-import { INTERNAL_ON_LOAD } from "@infinigrow/commander/constants";
+import {
+    INTERNAL_ON_LOAD,
+    INTERNAL_ON_MOUNT,
+    INTERNAL_ON_UNMOUNT,
+    INTERNAL_ON_UPDATE,
+    INTERNAL_PROPS
+} from "@infinigrow/commander/constants";
 
 import { wrapPromiseSuspendable } from "@infinigrow/demo-app/src/api/api-utils.ts";
+
 
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core.tsx";
 
@@ -34,7 +41,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
         this.apiModule = this.api.getModule( this.props.module );
 
         this.element = async () => {
-            const props = await this.apiModule.getProps( this.props.type, this  );
+            const props = await this.apiModule.getProps( this.props.type, this );
 
             return React.createElement( this.props.type, props );
         };
@@ -50,7 +57,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
 
             const parent = await this.element();
 
-            const children = await Promise.all ( parent.props.children.map( async ( child: any ) => {
+            const children = await Promise.all( parent.props.children.map( async ( child: any ) => {
                 const childProps = await this.apiModule.getProps( child.type, this, child.props );
 
                 return React.createElement( childrenType, childProps );
@@ -68,7 +75,14 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             const data = resource.read();
 
             const internalProps = {
-                [ INTERNAL_ON_LOAD ]: ( context: any ) => this.apiModule.mountInternal( this, context )
+                [ INTERNAL_PROPS ]: {
+                    handlers: {
+                        [ INTERNAL_ON_LOAD ]: ( context: any ) => this.apiModule.onLoadInternal( this, context ),
+                        [ INTERNAL_ON_MOUNT ]: ( context: any ) => this.apiModule.onMountInternal( this, context ),
+                        [ INTERNAL_ON_UNMOUNT ]: ( context: any ) => this.apiModule.onUnmountInternal( this, context ),
+                        [ INTERNAL_ON_UPDATE ]: ( context: any, state: any ) => this.apiModule.onUpdateInternal( this, context, state ),
+                    }
+                }
             };
 
             const mount = () => {

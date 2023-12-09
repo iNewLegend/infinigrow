@@ -14,6 +14,7 @@ interface Route {
 }
 
 export abstract class APIModuleBase {
+
     protected api: APICore;
 
     private routes: Map<RequestInit["method"], Map<Route["path"], Route>> = new Map();
@@ -26,8 +27,20 @@ export abstract class APIModuleBase {
         this.api = api;
     }
 
-    public mountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
+    public onLoadInternal( component: APIComponent, context: CommandSingleComponentContext ) {
+        this.load?.( component, context );
+    }
+
+    public onUnmountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
+        this.unmount?.( component, context );
+    }
+
+    public onMountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
         this.mount?.( component, context );
+    }
+
+    public onUpdateInternal( component: APIComponent, context: CommandSingleComponentContext, state: any ) {
+        this.onUpdate?.( component, context, state );
     }
 
     public async getProps( element: CommandFunctionComponent, component: APIComponent, args?: any ) {
@@ -72,6 +85,20 @@ export abstract class APIModuleBase {
 
     protected abstract requestHandler( component: APIComponent, element: CommandFunctionComponent, request: any ): Promise<any>;
 
+    protected load?( component: APIComponent, context: CommandSingleComponentContext ): void;
+
     protected mount?( component: APIComponent, context: CommandSingleComponentContext ): void;
+
+    protected unmount?( component: APIComponent, context: CommandSingleComponentContext ): void;
+
+    protected onUpdate?( component: APIComponent, context: CommandSingleComponentContext, state: {
+        currentProps: any,
+        currentState: any,
+        prevProps: any,
+        prevState: any,
+        snapshot: any,
+    } ): void;
+
+    // protected onStateUpdateExternal?( component: APIComponent, context: CommandSingleComponentContext, prevState: any, currentState: any ): void;
 }
 

@@ -140,13 +140,6 @@ export function useCommanderState<TState>( componentName: string, extendInitialS
         initialStateExtendedRef.current = true;
     }
 
-    const stateRef = {};
-
-    Object.defineProperty( stateRef, "getState", {
-        value: () => internalContext.getState(),
-        writable: false,
-    } );
-
     return [
         internalContext.getState() as TState,
         ( state: Partial<TState>, callback?: () => void ) => {

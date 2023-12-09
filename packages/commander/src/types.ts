@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import type React from "react";
 
 import type { EventEmitter } from "events";
@@ -8,7 +6,7 @@ import type { CommandBase } from "@infinigrow/commander/command-base";
 
 // Sugar, eg `ComponentType.getName` not `ComponentInstance`
 export interface CommandFunctionComponent<TProps = any, TState = undefined> extends React.FC<TProps> {
-    (props: TProps, state?: TState): ReactNode;
+    (props: TProps, state?: TState): React.ReactNode;
 
     // Those methods always implemented "under the hood"
     getName?(): string;

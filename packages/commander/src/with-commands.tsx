@@ -30,12 +30,12 @@ import type {
     CommandComponentContextProps
 } from "@infinigrow/commander/types";
 
-export function withCommands<TState = undefined>(
+export function withCommands<TProps = any, TState = undefined>(
     componentName: string,
-    Component: CommandFunctionComponent,
+    Component: CommandFunctionComponent<TProps, TState>,
     state: TState,
     commands: CommandNewInstanceWithArgs<TState>[]
-): CommandFunctionComponent;
+): CommandFunctionComponent<TProps, TState>;
 
 export function withCommands(
     componentName: string,

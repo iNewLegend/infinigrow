@@ -60,10 +60,20 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
 
             const data = init?.body || "";
 
-            if ( typeof data === "string" ) {
-                storage.setItem( path, data );
+            const currentData = storage.getItem( path ) || "{}";
+
+            // If not string error
+            if ( typeof data !== "string" ) {
+                return Promise.reject( new Error( `Data at ${ path } is not a string` ) );
             }
 
+            // Merge the new data with the current data
+            const newData = JSON.stringify( {
+                ... JSON.parse( currentData ),
+                ...JSON.parse( data ),
+            } );
+
+            storage.setItem( path, newData );
             return Promise.resolve( new Response( data, baseInit ) );
         } else if ( method === "DELETE" ) {
             // For DELETE requests, remove the data from storage
@@ -111,6 +121,7 @@ export class APICore {
             headers: {
                 "Content-Type": "application/json",
             },
+            body: method === "GET" ? undefined : JSON.stringify( args ),
         } );
 
         return promise.then( handler );
