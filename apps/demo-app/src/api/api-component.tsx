@@ -10,7 +10,6 @@ import {
 
 import { wrapPromiseSuspendable } from "@infinigrow/demo-app/src/api/api-utils.ts";
 
-
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core.tsx";
 
 import type { APIModuleBase } from "@infinigrow/demo-app/src/api/api-module-base.ts";
@@ -58,7 +57,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             const parent = await this.element();
 
             const children = await Promise.all( parent.props.children.map( async ( child: any ) => {
-                const childProps = await this.apiModule.getProps( child.type, this, child.props );
+                const childProps = await this.apiModule.getProps( child.type, this, child );
 
                 return React.createElement( childrenType, childProps );
             } ) );
@@ -75,6 +74,8 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             const data = resource.read();
 
             const internalProps = {
+                ... data.element.props,
+
                 [ INTERNAL_PROPS ]: {
                     handlers: {
                         [ INTERNAL_ON_LOAD ]: ( context: any ) => this.apiModule.onLoadInternal( this, context ),
@@ -97,7 +98,6 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
         };
 
         return (
-
             <React.Suspense fallback={
                 this
                     .props

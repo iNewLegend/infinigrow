@@ -13,12 +13,21 @@ import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accord
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
+import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
+
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
-import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { ChannelItemComponent, ChannelMetaData } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { EnforceKeys } from "@infinigrow/demo-app/src/utils";
+
+const META_DATA_KEYS: EnforceKeys<ChannelMetaData> = {
+    id: true,
+    icon: true,
+    name: true,
+};
 
 export function toAccordionItem(
     channel: ChannelItemComponent,
@@ -27,12 +36,12 @@ export function toAccordionItem(
 ): React.ReactComponentElement<typeof AccordionItem> {
     // Omit `collapsedState` and `setCollapsedState` those are extended by `renderExtendAccordionItem`
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
-        itemKey: channel.props.id,
+        itemKey: channel.props.meta.id,
 
-        children: <ChannelItem { ... channel.props } key={ channel.props.id }/>,
+        children: <ChannelItem { ... channel.props } key={ channel.props.meta.id }/>,
         heading: {
-            title: channel.props.name,
-            icon: channel.props.icon,
+            title: channel.props.meta.name,
+            icon: channel.props.meta.icon,
         },
         menu: {
             edit: {
@@ -56,7 +65,7 @@ export function toAccordionItem(
     const { children, ... withoutChildren } = accordionProps;
 
     return <AccordionItem children={ children } { ... withoutChildren }
-                          key={ "channel-" + channel.props.id + "-accordion-item-" + index.toString() }/>;
+                          key={ "channel-" + channel.props.meta.id + "-accordion-item-" + index.toString() }/>;
 }
 
 export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelListState> = ( props ) => {
@@ -71,10 +80,7 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelLis
         channels: channels.map( ( channel ) => {
             return {
                 ... channel,
-
-                data: {
-                    name: channel.props.name,
-                },
+                meta: pickEnforcedKeys( channel.props.meta, META_DATA_KEYS )
             };
         } ),
     } );
@@ -116,16 +122,16 @@ const $$ = withCommands<ChannelListProps, ChannelListState>( "App/ChannelsList",
         public apply( args: { id: string, name: string } ) {
             const channels = [ ... this.state.channels ]; // Create a copy of the channels array
 
-            const channelIndex = channels.findIndex( ( c ) => c.props.id === args.id );
+            const channelIndex = channels.findIndex( ( c ) => c.props.meta.id === args.id );
 
             if ( channelIndex !== -1 ) {
                 // Create a new channel object with the updated data & replace it in the channels array
                 channels[ channelIndex ] = {
                     ... channels[ channelIndex ],
-                    data: {
-                        ... channels[ channelIndex ].data,
+                    props: { meta: {
+                        ... channels[ channelIndex ].props.meta,
                         name: args.name,
-                    },
+                    } },
                 };
 
                 return this.setState( { channels } );

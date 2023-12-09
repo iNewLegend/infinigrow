@@ -23,10 +23,10 @@ function onEditRequest(
     accordionItemCommands: ReturnType<typeof useCommanderChildrenComponents>,
 ) {
     // Select the channel (trigger accordion item selection)
-    setSelected( { [ channel.props.id ]: true } );
+    setSelected( { [ channel.props.meta.id ]: true } );
 
     accordionItemCommands.forEach( ( command ) => {
-        if ( command.getInternalContext().props.itemKey === channel.props.id ) {
+        if ( command.getInternalContext().props.itemKey === channel.props.meta.id ) {
             // Tell accordion to enter edit mode
             command.run( "UI/AccordionItem/EditableTitle", { state: true } );
 
@@ -49,7 +49,7 @@ function onRemoveRequest(
     setChannelsState: ( channels: ChannelItemComponent[] ) => void,
 ) {
     // Remove the channel from the list
-    setChannelsState( channelsState.filter( ( c ) => c.props.id !== channel.props.id ) );
+    setChannelsState( channelsState.filter( ( c ) => c.props.meta.id !== channel.props.meta.id ) );
 }
 
 function onAddRequest(
@@ -60,7 +60,7 @@ function onAddRequest(
     setChannelsState( [ ... channelsState,
         // @ts-ignore
         <ChannelItem key={ Math.random() } id={ Math.random() } name={ "New Channel" + channelsState.length }
-                     icon={ channelsState[ 0 ].props.icon }/>
+                     icon={ channelsState[ 0 ].props.meta.icon }/>
     ] );
 }
 

@@ -7,21 +7,21 @@ import type {
     BudgetAllocationType
 } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
 
-export type ChannelItemComponent = React.ReactComponentElement<typeof ChannelItem> & { data?: ChannelDataState }
+export type ChannelItemComponent = React.ReactComponentElement<typeof ChannelItem>;
 
 export interface ChannelState extends React.ComponentState {
     frequency: ChannelBudgetFrequencyProps["frequency"];
     baseline: string;
     allocation: BudgetAllocationType;
-    data?: ChannelDataState
+    meta?: ChannelMetaData
 }
 
-export interface ChannelItemProps {
+export interface ChannelMetaData {
     id: string;
     icon: string;
     name: string;
 }
 
-export interface ChannelDataState {
-    name?: string;
+export interface ChannelItemProps {
+    meta: ChannelMetaData;
 }

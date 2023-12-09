@@ -1,8 +1,10 @@
 import { APIModuleBase } from "@infinigrow/demo-app/src/api/api-module-base";
 
+import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
 import type { APIComponent } from "@infinigrow/demo-app/src/api/api-component";
 
-import type { CommandFunctionComponent , CommandSingleComponentContext } from "@infinigrow/commander/types";
+import type { CommandFunctionComponent, CommandSingleComponentContext } from "@infinigrow/commander/types";
 
 import type { APICore } from "@infinigrow/demo-app/src/api/api-core";
 
@@ -30,18 +32,29 @@ export class APIChannelsModule extends APIModuleBase {
         switch ( element.getName!() ) {
             case "App/ChannelsList": {
                 return {
-                    children: result.map( ( i: any ) => ( {
-                        props: i,
-                        type: component.props.children!.props.type,
-                    } ) ),
+                    children: result.map( ( i: any ) => {
+                        const key = i.key;
+
+                        delete i.key;
+
+                        return {
+                            key,
+                            props: i,
+                            type: component.props.children!.props.type,
+                        };
+                    } ),
                 };
+            }
+
+            case "App/ChannelItem": {
+
             }
         }
 
         return result;
     }
 
-    protected onUpdate( component: APIComponent, context: CommandSingleComponentContext, state: {  currentState: any, prevState: any } ) {
+    protected onUpdate( component: APIComponent, context: CommandSingleComponentContext, state: { currentState: any, prevState: any } ) {
         const { currentState, prevState } = state;
 
         // Handle only state changes
@@ -59,11 +72,11 @@ export class APIChannelsModule extends APIModuleBase {
         }
     }
 
-    private onChannelsChanged( prevChannels: any[], currentChannels: any[] ) {
+    private onChannelsChanged( prevChannels: ChannelItemComponent[], currentChannels: ChannelItemComponent[] ) {
         // If data changed
-        for ( let i = 0; i < currentChannels.length; i++ ) {
-            if ( prevChannels[ i ].data !== currentChannels[ i ].data ) {
-                this.onChannelsDataChanged( prevChannels[ i ].key, prevChannels[ i ].data, currentChannels[ i ].data );
+        for ( let i = 0 ; i < currentChannels.length ; i++ ) {
+            if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
+                this.onChannelsMetaDataChanged( prevChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
 
                 // Assume that only one channel can be changed at a time
                 break;
@@ -74,8 +87,8 @@ export class APIChannelsModule extends APIModuleBase {
     /**
      * It was a lot of easier & more efficient to implement this on command hook, but that's fine for the demo.
      */
-    private onChannelsDataChanged( key: string, prevData: any, currentData: any ) {
+    private onChannelsMetaDataChanged( key: string, prevMeta: any, currentMeta: any ) {
         // If channel data changed
-        this.api.fetch( "POST", "v1/channels/:key", { key, ... currentData }, ( r ) => r.json() );
+        this.api.fetch( "POST", "v1/channels/:key", { key, meta: currentMeta }, ( r ) => r.json() );
     }
 }

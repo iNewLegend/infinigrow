@@ -12,30 +12,22 @@ const storage = window.localStorage;
 if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
     storage.setItem( "__DEFAULT_STORAGE__", "true" );
 
-    storage.setItem( "/v1/channels", JSON.stringify( [ {
-        key: "1",
-        id: "paid-reviews",
-        name: "Paid Reviews",
-        icon: AffiliateProgramPNG,
-    }, {
-        key: "2",
-        id: "free-reviews",
-        name: "Free Reviews",
-        icon: TestPNG,
-    } ] ) );
-
     storage.setItem( "/v1/channels/1", JSON.stringify( {
         key: "1",
-        id: "paid-reviews",
-        name: "Paid Reviews",
-        icon: AffiliateProgramPNG,
+        meta: {
+            id: "free-reviews",
+            name: "Free Reviews",
+            icon: TestPNG,
+        }
     } ) );
 
     storage.setItem( "/v1/channels/2", JSON.stringify( {
         key: "2",
-        id: "free-reviews",
-        name: "Free Reviews",
-        icon: TestPNG,
+        meta: {
+            id: "paid-reviews",
+            name: "Paid Reviews",
+            icon: AffiliateProgramPNG,
+        }
     } ) );
 }
 
@@ -52,6 +44,26 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
         if ( method === "GET" ) {
             // For GET requests, return the data from storage
             const data = storage.getItem( path );
+
+            if ( ! data ) {
+                // Try get all items that start with the path
+                const items: Record<string, string> = {};
+
+                for ( const key in storage ) {
+                    if ( key.startsWith( path ) ) {
+                        items[ key ] = JSON.parse( storage.getItem( key ) || "{}" );
+                    }
+                }
+
+                // Sort items by key
+                const sortedItems: Record<string, string> = {};
+
+                Object.keys( items ).sort().forEach( key => {
+                    sortedItems[ key ] = items[ key ];
+                } );
+
+                return Promise.resolve( new Response( JSON.stringify( Object.values( sortedItems ) ), baseInit ) );
+            }
 
             return Promise.resolve( new Response( data || "{}", baseInit ) );
 
