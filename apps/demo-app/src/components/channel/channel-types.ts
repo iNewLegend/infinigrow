@@ -9,17 +9,31 @@ import type {
 
 export type ChannelItemComponent = React.ReactComponentElement<typeof ChannelItem>;
 
+export enum UpdateFromType {
+    FROM_BUDGET_SETTINGS,
+    FROM_BUDGET_BREAKS,
+}
+
 export interface ChannelState extends React.ComponentState {
     frequency: ChannelBudgetFrequencyProps["frequency"];
     baseline: string;
     allocation: BudgetAllocationType;
-    meta?: ChannelMetaData
+
+    meta?: ChannelMetaData;
+    breaks?: ChannelBreakData[];
+
+    breakElements?: any[];
 }
 
 export interface ChannelMetaData {
     id: string;
     icon: string;
     name: string;
+}
+
+export interface ChannelBreakData {
+    date: Date,
+    value: string,
 }
 
 export interface ChannelItemProps {

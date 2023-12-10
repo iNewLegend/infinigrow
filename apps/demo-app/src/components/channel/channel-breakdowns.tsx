@@ -4,16 +4,16 @@ import moment from "moment";
 
 import { Input } from "@nextui-org/input";
 
-import { useCommanderComponent } from "@infinigrow/commander/use-commands";
+import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/use-commands";
 
+import { formatNumericStringToFraction } from "@infinigrow/demo-app/src/utils";
+
+import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
+import type { ChannelState, ChannelBreakData } from "@infinigrow/demo-app/src/components/channel/channel-types";
 import type { InputProps } from "@nextui-org/input";
 
-import type { ChannelState } from "components/channel/channel-types";
-
-import type {
-    ChannelBudgetFrequencyProps,
-    BudgetAllocationType
-} from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
+import type { ChannelBudgetFrequencyProps } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
 
 const DEFAULT_BREAK_INPUT_PROPS: InputProps = {
     classNames: {
@@ -34,40 +34,93 @@ const DEFAULT_BREAK_INPUT_PROPS: InputProps = {
     ),
 };
 
-function getBreaks(
+function generateBreaks(
     frequency: ChannelBudgetFrequencyProps["frequency"],
     baseline: string,
-    allocation: BudgetAllocationType,
-    commands: ReturnType<typeof useCommanderComponent>
 ) {
-    const breaks: React.JSX.Element[] = [];
+    const breaks: ChannelBreakData[] = [];
 
-    const Break: React.FC<{ label: string; value: string }> = ( props ) => {
-        const { label } = props,
-            parsed = parseFloat( props.value );
+    const baselineParsed = parseFloat( baseline.toString().replace( /,/g, "" ) );
 
-        const formatted = ( Number.isNaN( parsed ) ? 0 : parsed ).toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2,
+    let fillValue;
+
+    // noinspection FallThroughInSwitchStatementJS
+    switch ( frequency ) {
+        case "annually":
+            // Per month.
+            fillValue = baselineParsed / 12;
+            break;
+
+        case "monthly":
+            // Same each month.
+            fillValue = baselineParsed;
+            break;
+
+        case "quarterly":
+            const perQuarter = baselineParsed / 4;
+
+            for ( let i = 0 ; i < 12 ; i++ ) {
+                const date = moment().month( i ).toDate();
+                if ( i % 3 === 0 ) {
+                    breaks.push( {
+                        date,
+                        value: perQuarter.toString(),
+                    } );
+                    continue;
+                }
+
+                // No budget
+                breaks.push( {
+                    date,
+                    value: "0",
+                } );
             }
-        );
 
-        const [ value, setValue ] = React.useState<string>( formatted ),
-            disabled = allocation === "equal";
+            break;
+
+        default:
+            throw new Error( `Invalid frequency: ${ frequency }` );
+    }
+
+    if ( ! breaks.length ) {
+        for ( let i = 0 ; i < 12 ; i++ ) {
+            breaks.push( {
+                date: moment().month( i ).toDate(),
+                value: fillValue!.toString(),
+            } );
+        }
+    }
+
+    return breaks;
+}
+
+function getBreakElements(
+    breaks: ChannelBreakData[],
+    breaksElements: React.JSX.Element[],
+    allocation: ChannelState["allocation"],
+    onInputChange: ( index: number, value: string ) => void
+) {
+    if ( ! breaks.length ) {
+        throw new Error( "Breaks state is empty" );
+    }
+
+    const breakElements: React.JSX.Element[] = [];
+
+    const Break: React.FC<{ label: string; value: string, index: number, allocation: ChannelState["allocation"] }> = ( props ) => {
+        const { label, index } = props,
+            formatted = formatNumericStringToFraction( props.value );
+
+        const disabled = allocation === "equal";
 
         const inputProps: InputProps = {
             ... DEFAULT_BREAK_INPUT_PROPS,
 
             label,
-            value,
             disabled,
 
-            onChange: ( e ) => ! disabled && commands.run( "App/ChannelItem/SetBreakdown", {
-                setValue,
-                value: e.target.value
-            } )
+            value: formatted,
+
+            onChange: ( e ) => ! disabled && onInputChange( index, e.target.value )
         };
 
         return (
@@ -77,104 +130,141 @@ function getBreaks(
         );
     };
 
-    function getMonth( index: number ) {
-        return moment().month( index ).format( "MMM D" );
+    function formatDate( date: Date ) {
+        return moment( date ).format( "MMM D" );
     };
 
-    const baselineParsed = parseFloat( baseline.replace( /,/g, "" ) );
+    let index = 0;
 
-    switch ( frequency ) {
-        case "annually":
-            const perMonth = baselineParsed / 12;
+    const isAllocationChanged = breaksElements?.some( ( element ) => element.props.allocation !== allocation );
 
-            for ( let i = 0 ; i < 12 ; i++ ) {
-                breaks.push( (
-                    <Break key={ i } label={ getMonth( i ) } value={ perMonth.toString() }/> ) );
+    for ( const { date, value } of breaks ) {
+        if ( ! isAllocationChanged && breaksElements?.[ index ] ) {
+            const existBreakElement = breaksElements?.[ index ];
+
+            // Update with pinceta
+            if ( existBreakElement.props.value.toString() !== value.toString() ) {
+                breakElements.push( React.cloneElement( existBreakElement, {
+                    value: value.toString(),
+                } ) );
+
+                index++;
+                continue;
             }
-            break;
 
-        case "monthly":
-            for ( let i = 0 ; i < 12 ; i++ ) {
-                breaks.push( (
-                    <Break key={ i } label={ getMonth( i ) } value={ baselineParsed.toString() }/> ) );
-            }
-            break;
+            breakElements.push( existBreakElement );
+            index++;
+            continue;
+        }
 
-        case "quarterly":
-            const perQuarter = baselineParsed / 4;
+        const props = {
+            index,
+            allocation,
+            label: formatDate( date ),
+            value: value.toString(),
+        };
 
-            for ( let i = 0 ; i < 12 ; i++ ) {
-                if ( i % 3 === 0 ) {
-                    breaks.push( ( <Break key={ i } label={ getMonth( i ) } value={ perQuarter.toString() }/> ) );
-                    continue;
-                }
+        breakElements.push( <Break key={ date.getTime() } { ... props } /> );
 
-                breaks.push( ( <Break key={ i } label={ getMonth( i ) } value="0"/> ) );
-            }
-            break;
+        index++;
     }
 
-    return breaks;
+    return breakElements;
 }
 
 export const ChannelBreakdowns: React.FC = () => {
     const commands = useCommanderComponent( "App/ChannelItem" ),
-        state = commands.getState<ChannelState>();
+        [ state, setState, isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
-    // Those are initial values, they are not "live" values.
-    const { frequency, baseline, allocation } = state;
-
-    const [ breaks, setBreaks ] = React.useState<React.JSX.Element[]>( getBreaks(
-            frequency,
-            baseline,
-            allocation,
-            commands
-        )
-    );
-
-    const setCurrentBreaks = async ( stateUpdated: Promise<ChannelState | void> ) => {
-        // Ensure that the state is updated before we get the new values.
-        await stateUpdated;
-
-        const currentState = commands.getState<ChannelState>();
-
-        setBreaks( getBreaks(
-            currentState.frequency,
-            currentState.baseline,
-            currentState.allocation,
-            commands
-        ) );
+    const onBreakdownInputChange = ( index: number, value: string ) => {
+        commands.run( "App/ChannelItem/SetBreakdown", { index, value } );
     };
 
-    /**
-     * TODO: Should be using state, but im lazy.
-     */
+    if ( ! isMounted() ) {
+        if ( ! state.breaks?.length ) {
+            state.breaks = generateBreaks( state.frequency, state.baseline );
+        }
+
+        if ( ! state.breakElements?.length ) {
+            state.breakElements = getBreakElements( state.breaks, [], state.allocation, onBreakdownInputChange );
+        }
+    }
+
+    const setCurrentBreaks = async ( update?: Promise<UpdateFromType> ) => {
+        // Ensure that the state is updated before we get the new values.
+        const prevFrequency = state.frequency,
+            prevBaseline = state.baseline,
+            prevAllocation = state.allocation;
+
+        if ( update ) {
+            const updateFrom = await update;
+
+            const currentState = commands.getState<ChannelState>();
+
+            let breaks = currentState.breaks!;
+
+            const setBreaksCurrent = () => {
+                const breakdownElements = getBreakElements(
+                    breaks!,
+                    currentState.breakElements!,
+                    currentState.allocation,
+                    onBreakdownInputChange
+                );
+
+                setState( {
+                    breakElements: breakdownElements
+                } );
+            };
+
+            switch ( updateFrom ) {
+                case UpdateFromType.FROM_BUDGET_BREAKS:
+                    setBreaksCurrent();
+                    break;
+
+                case UpdateFromType.FROM_BUDGET_SETTINGS:
+                    const isBudgetSettingsChanged = prevFrequency !== currentState.frequency ||
+                        prevAllocation !== currentState.allocation ||
+                        ( "0" === currentState.baseline || prevBaseline !== currentState.baseline );
+
+                    if ( isBudgetSettingsChanged ) {
+                        breaks = generateBreaks( currentState.frequency, currentState.baseline );
+                    }
+
+                    setBreaksCurrent();
+                    break;
+
+                // Mostly happens while hot-reloading.
+                default:
+                    debugger;
+                    return;
+            }
+
+            setState( {
+                breaks
+            } );
+        }
+    };
+
     const setBreakdownSum = () => {
+        // TODO: Should be using state, but im lazy.
         // Get all the values from the inputs.
         const values = Array.from( document.querySelectorAll( ".break input" ) )
             .map( ( input ) => parseFloat( ( input as HTMLInputElement ).value.replace( /,/g, "" ) ) );
 
         // Sum them up.
-        const sum = values.reduce( ( a, b ) => a + b, 0 );
+        const sum = formatNumericStringToFraction( values.reduce( ( a, b ) => a + b, 0 ).toString() );
 
-        commands.run( "App/ChannelItem/SetBaseline", { value: sum.toString() } );
+        // Set the new baseline.
+        setState( {
+            baseline: sum!
+        } );
+
+        // Update the breaks.
+        setCurrentBreaks( Promise.resolve( UpdateFromType.FROM_BUDGET_BREAKS ) );
     };
 
     React.useEffect( () => {
-        commands.hook( "App/ChannelItem/SetBaseline", async ( stateUpdated: Promise<ChannelState> ) => {
-            // Ensure that the state is updated before we get the new values.
-            await stateUpdated;
-
-            const currentState = commands.getState<ChannelState>();
-
-            // If the allocation is manual, we don't want to update the breakdowns.
-            if ( currentState.allocation === "manual" ) {
-                return;
-            }
-
-            setCurrentBreaks( Promise.resolve() );
-        } );
-
+        commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreaks );
         commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreaks );
         commands.hook( "App/ChannelItem/SetAllocation", setCurrentBreaks );
 
@@ -183,7 +273,7 @@ export const ChannelBreakdowns: React.FC = () => {
 
     return (
         <div className="content">
-            { breaks }
+            { state.breakElements }
         </div>
     );
 };
