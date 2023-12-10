@@ -129,7 +129,11 @@ export function withCommands(
 
                 getState: () => this.state as Readonly<React.ComponentState>,
                 setState: ( state, callback ) => {
-                    return this.setState( state, callback );
+                    return this.setState( state, () => {
+                        if ( callback ) {
+                            callback( this.state );
+                        }
+                    } );
                 }
             } );
         }

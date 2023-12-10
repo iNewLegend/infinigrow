@@ -142,11 +142,14 @@ export function useCommanderState<TState>( componentName: string, extendInitialS
 
     return [
         internalContext.getState() as TState,
-        ( state: Partial<TState>, callback?: () => void ) => {
+
+        ( state: Partial<TState>, callback?: ( newState: TState ) => void ) => {
             const internalContext = core[ GET_INTERNAL_SYMBOL ]( id );
 
-            return internalContext.setState<Partial<TState>>( state, callback );
-        }
+            return internalContext.setState<TState>( state as  TState, callback );
+        },
+
+        () => core[ GET_INTERNAL_SYMBOL ]( id ).isMounted,
     ] as const;
 }
 

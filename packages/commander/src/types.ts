@@ -38,7 +38,7 @@ export interface CommandSingleComponentContext {
     getState: <TState>() => React.Component<any, TState>["state"];
     setState<TState, K extends keyof TState = keyof TState>(
         state: ((prevState: Readonly<TState>) => Pick<TState, K> | TState | null) | (Pick<TState, K> | TState | null),
-        callback?: () => void,
+        callback?: ( state: TState ) => void,
     ): void;
     emitter: EventEmitter;
 }
@@ -59,7 +59,10 @@ export type CommandArgs = {
 
 export interface CommandOptions<TState> {
     state?: React.ComponentState;
-    setState?: React.Component<any, TState>["setState"];
+    setState?: <K extends keyof TState>(
+        state: ( ( prevState: Readonly<TState> ) => Pick<TState, K> | TState | null ) | ( Pick<TState, K> | TState | null ),
+        callback?: ( state: TState ) => void,
+    ) => void;
 }
 
 export type CommandNewInstanceWithArgs<TState = undefined> = ( new ( args: CommandRegisterArgs ) => CommandBase<TState> );

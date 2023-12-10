@@ -46,15 +46,15 @@ export abstract class CommandBase<TState = React.ComponentState> {
 
     protected setState<K extends keyof TState>(
         state: ( ( prevState: Readonly<TState> ) => Pick<TState, K> | TState | null ) | ( Pick<TState, K> | TState | null ),
-        callback?: () => void,
+        callback?: ( state: TState ) => void,
     ) {
         this.validateState();
 
         return new Promise( ( resolve ) => {
-            this.options.setState!( state, () => {
-                callback?.();
+            this.options.setState!( state, ( currentState ) => {
+                callback?.( currentState );
 
-                resolve( state );
+                resolve( currentState );
             } );
         } );
     }
