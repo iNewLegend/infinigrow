@@ -89,7 +89,11 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             const mount = () => {
                 return (
                     <data.element.type { ... internalProps }>
-                        { data.children }
+                        { data.children.map( ( child: React.ReactElement, index: number ) => (
+                            <child.type key={ index } { ... child.props }>
+                                { child.props.children }
+                            </child.type>
+                        ) ) }
                     </data.element.type>
                 );
             };

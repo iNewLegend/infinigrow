@@ -278,7 +278,6 @@ export const ChannelBreakdowns: React.FC = () => {
             .toString()
         );
 
-        console.log( values );
         // Set the new baseline.
         setState( {
             baseline: sum!

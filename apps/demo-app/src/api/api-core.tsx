@@ -12,8 +12,8 @@ const storage = window.localStorage;
 if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
     storage.setItem( "__DEFAULT_STORAGE__", "true" );
 
-    storage.setItem( "/v1/channels/1", JSON.stringify( {
-        key: "1",
+    storage.setItem( "/v1/channels/0", JSON.stringify( {
+        key: "0",
         meta: {
             id: "free-reviews",
             name: "Free Reviews",
@@ -27,8 +27,8 @@ if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
         breaks: [],
     } ) );
 
-    storage.setItem( "/v1/channels/2", JSON.stringify( {
-        key: "2",
+    storage.setItem( "/v1/channels/1", JSON.stringify( {
+        key: "1",
         meta: {
             id: "paid-reviews",
             name: "Paid Reviews",
@@ -43,6 +43,27 @@ if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
     } ) );
 }
 
+function isObject( item: any ) {
+    return ( item && typeof item === "object" && ! Array.isArray( item ) );
+}
+
+function deepMerge( target: any, source: any ) {
+    const output = { ... target };
+    if ( isObject( target ) && isObject( source ) ) {
+        Object.keys( source ).forEach( key => {
+            const isSourceKeyAnObject = isObject( source[ key ] );
+            const doesKeyExistInTarget = key in target;
+
+            if ( isSourceKeyAnObject && doesKeyExistInTarget ) {
+                output[ key ] = deepMerge( target[ key ], source[ key ] );
+            } else {
+                output[ key ] = source[ key ];
+            }
+        } );
+    }
+    return output;
+}
+
 globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Response> => {
     const url = typeof input === "string" ? new URL( input ) : input instanceof URL ? input : new URL( input.url );
     const path = url.pathname;
@@ -52,7 +73,7 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
 
     const baseInit = {};
 
-    const act = async() => {
+    const act = async () => {
         if ( method === "GET" ) {
             // For GET requests, return the data from storage
             const data = storage.getItem( path );
@@ -92,10 +113,10 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
             }
 
             // Merge the new data with the current data
-            const newData = JSON.stringify( {
-                ... JSON.parse( currentData ),
-                ...JSON.parse( data ),
-            } );
+            const newData = JSON.stringify( deepMerge(
+                JSON.parse( currentData ),
+                JSON.parse( data ),
+            ) );
 
             storage.setItem( path, newData );
             return Promise.resolve( new Response( data, baseInit ) );
@@ -104,7 +125,7 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
 
             storage.removeItem( path );
 
-            return Promise.resolve( new Response( undefined, baseInit) );
+            return Promise.resolve( new Response( undefined, baseInit ) );
         } else {
             // For other methods, return a not implemented error
 
