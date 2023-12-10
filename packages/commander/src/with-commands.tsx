@@ -139,6 +139,8 @@ export function withCommands(
         }
 
         public componentWillUnmount() {
+            core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ).isMounted = false;
+
             if ( this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ] ) {
                 this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
             }
