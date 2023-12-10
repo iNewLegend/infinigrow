@@ -7,6 +7,8 @@ import { NextUIProvider } from "@nextui-org/system";
 
 import { API } from "@infinigrow/api/src";
 
+import { Button } from "@nextui-org/button";
+
 import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-module";
 
 import AddChannel from "@infinigrow/demo-app/src/components/add-channel/add-channel";
@@ -65,6 +67,11 @@ function App() {
 
     return (
         <NextUIProvider>
+            <Button onClick={ () => {
+                localStorage.clear();
+                location.reload();
+            } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={true} radius={ "none" }>Reset Demo</Button>;
+
             <Layout { ... layoutProps }>
                 <Tabs { ... tabsProps }> {
                     tabsProps.items.map( ( tab ) => (
