@@ -54,6 +54,7 @@ export function useCommanderCommand( commandName: string ) {
     return {
         run: ( args: CommandArgs, callback?: ( result: any ) => void ) => commandsManager.run( id, args, callback ),
         hook: ( callback: ( result: any, args?: CommandArgs ) => void ) => commandsManager.hook( id, callback ),
+        unhook: () => commandsManager.unhook( id ),
 
         // TODO: Remove.
         getInternalContext: () => commandSignalContext,
@@ -125,7 +126,10 @@ export function useCommanderChildrenComponents( componentName: string ) {
     return childrenComponents;
 }
 
-export function useCommanderState<TState>( componentName: string, extendInitialState?: Partial<TState> ) {
+export function useCommanderState<TState>(
+    componentName: string,
+    extendInitialState?: Partial<TState>
+) {
     const componentContext = getSafeContext( componentName );
 
     const id = componentContext.getNameUnique();
@@ -141,15 +145,10 @@ export function useCommanderState<TState>( componentName: string, extendInitialS
     }
 
     return [
-        internalContext.getState() as TState,
+        internalContext.getState<TState>,
+        internalContext.setState<TState>,
 
-        ( state: Partial<TState>, callback?: ( newState: TState ) => void ) => {
-            const internalContext = core[ GET_INTERNAL_SYMBOL ]( id );
-
-            return internalContext.setState<TState>( state as  TState, callback );
-        },
-
-        () => core[ GET_INTERNAL_SYMBOL ]( id ).isMounted,
+        internalContext.isMounted,
     ] as const;
 }
 

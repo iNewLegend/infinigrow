@@ -30,12 +30,13 @@ class Core {
         componentName: string;
         commands: CommandSingleComponentContext[ "commands" ],
         emitter: EventEmitter;
-        isMounted: boolean;
+        isMounted(): boolean;
         key: React.Key;
+        getComponentContext: CommandSingleComponentContext["getComponentContext"];
         getState: CommandSingleComponentContext[ "getState" ];
         setState: CommandSingleComponentContext[ "setState" ];
     } ): void {
-        const { componentNameUnique, componentName, commands, emitter, getState, setState, isMounted, key } = args;
+        const { componentNameUnique, componentName, commands, emitter, getComponentContext, getState, setState, isMounted, key } = args;
 
         this.__devDebug( `Registering component '${ componentNameUnique }'` );
 
@@ -49,6 +50,7 @@ class Core {
             componentName,
             componentNameUnique,
             emitter,
+            getComponentContext,
             getState,
             setState,
             isMounted,
@@ -128,7 +130,7 @@ class Core {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public __devDebug( ... args: any[]): void {
+    public __devDebug( ... args: any[] ): void {
     }
 
     declare public __devGetContextLength: () => number;

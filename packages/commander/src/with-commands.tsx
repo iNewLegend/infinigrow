@@ -95,6 +95,14 @@ export function withCommands(
 
         public context: CommandComponentContextProps;
 
+        private $$commander = {
+            isMounted: false,
+        };
+
+        private isMounted()  {
+            return this.$$commander.isMounted;
+        }
+
         public constructor( props: any, context: any ) {
             super( props );
 
@@ -105,7 +113,7 @@ export function withCommands(
             this.registerInternalContext();
         }
 
-        private registerInternalContext( isMounted = false) {
+        private registerInternalContext() {
             const id = this.context.getNameUnique();
 
             if ( this.props[ INTERNAL_PROPS ]?.handlers ) {
@@ -116,6 +124,8 @@ export function withCommands(
                 return;
             }
 
+            const self = this;
+
             core[ REGISTER_INTERNAL_SYMBOL ]( {
                 componentName,
                 componentNameUnique: id,
@@ -123,15 +133,30 @@ export function withCommands(
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
 
-                isMounted,
+                isMounted: () => self.isMounted(),
 
-                key: this.props.$$key,
+                key: self.props.$$key,
 
-                getState: () => this.state as Readonly<React.ComponentState>,
+                getComponentContext: () => self.context,
+
+                getState: () => self.state as Readonly<React.ComponentState>,
                 setState: ( state, callback ) => {
-                    return this.setState( state, () => {
+                    if ( ! self.isMounted() ) {
+                        if ( ! callback ) {
+                            console.warn(
+                                "Can't call setState on a component that is not yet mounted, instead this call will assign `this.state` directly." +
+                                "to ignore this warning, add a callback to setState as a second argument."
+                            );
+                        }
+
+                        self.state = { ... self.state, ... state };
+
+                        return;
+                    }
+
+                    self.setState( state, () => {
                         if ( callback ) {
-                            callback( this.state );
+                            callback( self.state );
                         }
                     } );
                 }
@@ -139,7 +164,7 @@ export function withCommands(
         }
 
         public componentWillUnmount() {
-            core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ).isMounted = false;
+            this.$$commander.isMounted = false;
 
             if ( this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ] ) {
                 this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
@@ -171,7 +196,9 @@ export function withCommands(
         public componentDidMount() {
             const id = this.context.getNameUnique();
 
-            this.registerInternalContext( true );
+            this.$$commander.isMounted = true;
+
+            this.registerInternalContext();
 
             core[ SET_TO_CONTEXT ]( id, { props: this.props } );
 

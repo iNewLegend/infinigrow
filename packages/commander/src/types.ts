@@ -30,16 +30,23 @@ export interface CommandSingleComponentContext {
     };
     componentNameUnique: string;
     componentName: string;
-    isMounted: boolean;
+
     key: React.Key;
-    props: any;
+    props: React.PropsWithChildren<any>;
+
+    isMounted(): boolean;
+
     extendedInitialState?: boolean
     extendInitialState?: React.ComponentState;
+
     getState: <TState>() => React.Component<any, TState>["state"];
     setState<TState, K extends keyof TState = keyof TState>(
         state: ((prevState: Readonly<TState>) => Pick<TState, K> | TState | null) | (Pick<TState, K> | TState | null),
         callback?: ( state: TState ) => void,
     ): void;
+
+    getComponentContext: () => CommandComponentContextProps;
+
     emitter: EventEmitter;
 }
 

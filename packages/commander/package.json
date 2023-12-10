@@ -9,7 +9,8 @@
         "./with-commands": "./src/with-commands.tsx",
         "./use-commands": "./src/use-commands.tsx",
         "./types": "./src/types.ts",
-        "./constants": "./src/_internal/constants.ts"
+        "./constants": "./src/_internal/constants.ts",
+        "./core": "./src/_internal/core.ts"
     },
     "devDependencies": {
         "vite": "^5.0.6"
