@@ -17,16 +17,15 @@
         &[contenteditable="true"] {
             @apply cursor-text;
 
-            @apply animate-pulse;
-
-            @apply hover:animate-none;
-            @apply focus:animate-none;
+            @apply animate-pulse duration-[800];
 
             outline: 3px solid rgba(178, 187, 213, 0.50);
             filter: drop-shadow(0px 1px 2px #E6E8F0);
             border-radius: 8px;
             background: rgba(186, 190, 195, 0.45);
             text-align: center;
+
+            user-select: none;
 
             &:before {
                 content: "\00a0\00a0";
