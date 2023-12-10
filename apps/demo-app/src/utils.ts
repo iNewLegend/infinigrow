@@ -8,6 +8,10 @@ export function pickEnforcedKeys<T>( source: T, keys: EnforceKeys<T> ) {
     }
 
     Object.keys( keys ).forEach( ( key ) => {
+        if ( false === keys[ key as keyof T ] ) {
+            return;
+        }
+
         if ( "undefined" === typeof source[ key as keyof T ] ) {
             throw new Error( `Missing key: ${ key }` );
         }

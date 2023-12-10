@@ -15,19 +15,16 @@ import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/ac
 
 import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
 
+import type { ChannelState , ChannelItemComponent, ChannelMetaData } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
-import type { ChannelItemComponent, ChannelMetaData } from "@infinigrow/demo-app/src/components/channel/channel-types";
 import type { EnforceKeys } from "@infinigrow/demo-app/src/utils";
+import { META_DATA_KEYS } from "../channel/channel-consts.ts";
 
-const META_DATA_KEYS: EnforceKeys<ChannelMetaData> = {
-    id: true,
-    icon: true,
-    name: true,
-};
 
 export function toAccordionItem(
     channel: ChannelItemComponent,
@@ -76,14 +73,18 @@ export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelLis
         throw new Error( `<${ ChannelsList.name }> can accept only <${ ChannelItem.name }> as children` );
     }
 
-    const [ channelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList", {
+    const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList", {
         channels: channels.map( ( channel ) => {
             return {
                 ... channel,
+
+                // Exposing meta, for commands to use
                 meta: pickEnforcedKeys( channel.props.meta, META_DATA_KEYS )
             };
         } ),
     } );
+
+    const channelsListState = getChannelsListState();
 
     const setSelected = ( selected: { key: boolean } ) => {
         setChannelsListState( { selected } );

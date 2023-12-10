@@ -10,7 +10,8 @@ import type {
 export type ChannelItemComponent = React.ReactComponentElement<typeof ChannelItem>;
 
 export enum UpdateFromType {
-    FROM_BUDGET_SETTINGS,
+    FROM_UNKNOWN,
+    FROM_BUDGET_SETTINGS ,
     FROM_BUDGET_BREAKS,
 }
 

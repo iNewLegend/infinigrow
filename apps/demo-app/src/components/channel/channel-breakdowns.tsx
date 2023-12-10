@@ -174,51 +174,68 @@ function getBreakElements(
 
 export const ChannelBreakdowns: React.FC = () => {
     const commands = useCommanderComponent( "App/ChannelItem" ),
-        [ state, setState, isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" );
+        [ getState, setState, isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
     const onBreakdownInputChange = ( index: number, value: string ) => {
         commands.run( "App/ChannelItem/SetBreakdown", { index, value } );
     };
 
-    if ( ! isMounted() ) {
-        if ( ! state.breaks?.length ) {
-            state.breaks = generateBreaks( state.frequency, state.baseline );
+    const state = getState();
+
+    React.useEffect( () => {
+        if ( ! isMounted() ) {
+            return;
         }
 
-        if ( ! state.breakElements?.length ) {
-            state.breakElements = getBreakElements( state.breaks, [], state.allocation, onBreakdownInputChange );
-        }
-    }
+        let stateChanged = false;
+        const newState = { ... getState() };
 
-    const setCurrentBreaks = async ( update?: Promise<UpdateFromType> ) => {
+        if ( ! newState.breaks?.length ) {
+            stateChanged = true;
+            newState.breaks = generateBreaks( newState.frequency, newState.baseline );
+        }
+
+        if ( ! newState.breakElements?.length ) {
+            stateChanged = true;
+            newState.breakElements = getBreakElements( newState.breaks!, [], newState.allocation, onBreakdownInputChange );
+        }
+
+        if ( stateChanged ) {
+            setState( newState );
+        }
+    }, [ isMounted(), state, state.breaks, state.breakElements ]  );
+
+    const setBreakdownElements = ( breaks: ChannelBreakData[] ) => {
+        const currentState = commands.getState<ChannelState>();
+
+        const breakdownElements = getBreakElements(
+            breaks!,
+            currentState.breakElements!,
+            currentState.allocation,
+            onBreakdownInputChange
+        );
+
+        setState( {
+            breakElements: breakdownElements
+        } );
+    };
+
+    const setCurrentBreakdownsCallback = async ( update: Promise<UpdateFromType> ) => {
         // Ensure that the state is updated before we get the new values.
         const prevFrequency = state.frequency,
             prevBaseline = state.baseline,
             prevAllocation = state.allocation;
 
-        if ( update ) {
-            const updateFrom = await update;
+        const updateFrom = await update;
 
+        if ( updateFrom ) {
             const currentState = commands.getState<ChannelState>();
 
             let breaks = currentState.breaks!;
 
-            const setBreaksCurrent = () => {
-                const breakdownElements = getBreakElements(
-                    breaks!,
-                    currentState.breakElements!,
-                    currentState.allocation,
-                    onBreakdownInputChange
-                );
-
-                setState( {
-                    breakElements: breakdownElements
-                } );
-            };
-
             switch ( updateFrom ) {
                 case UpdateFromType.FROM_BUDGET_BREAKS:
-                    setBreaksCurrent();
+                    setBreakdownElements( breaks );
                     break;
 
                 case UpdateFromType.FROM_BUDGET_SETTINGS:
@@ -230,12 +247,15 @@ export const ChannelBreakdowns: React.FC = () => {
                         breaks = generateBreaks( currentState.frequency, currentState.baseline );
                     }
 
-                    setBreaksCurrent();
+                    if ( ! isMounted() ) {
+                        debugger;
+                    }
+
+                    setBreakdownElements( breaks );
                     break;
 
                 // Mostly happens while hot-reloading.
                 default:
-                    debugger;
                     return;
             }
 
@@ -252,24 +272,37 @@ export const ChannelBreakdowns: React.FC = () => {
             .map( ( input ) => parseFloat( ( input as HTMLInputElement ).value.replace( /,/g, "" ) ) );
 
         // Sum them up.
-        const sum = formatNumericStringToFraction( values.reduce( ( a, b ) => a + b, 0 ).toString() );
+        const sum = formatNumericStringToFraction( values
+            .filter( ( value ) => ! isNaN( value ) )
+            .reduce( ( a, b ) => a + b, 0 )
+            .toString()
+        );
 
+        console.log( values );
         // Set the new baseline.
         setState( {
             baseline: sum!
         } );
 
         // Update the breaks.
-        setCurrentBreaks( Promise.resolve( UpdateFromType.FROM_BUDGET_BREAKS ) );
+        setCurrentBreakdownsCallback(  Promise.resolve( UpdateFromType.FROM_BUDGET_BREAKS ) );
     };
 
     React.useEffect( () => {
-        commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreaks );
-        commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreaks );
-        commands.hook( "App/ChannelItem/SetAllocation", setCurrentBreaks );
+        commands.hook( "App/ChannelItem/SetBaseline", setCurrentBreakdownsCallback );
+        commands.hook( "App/ChannelItem/SetFrequency", setCurrentBreakdownsCallback );
+        commands.hook( "App/ChannelItem/SetAllocation", setCurrentBreakdownsCallback );
 
         commands.hook( "App/ChannelItem/SetBreakdown", setBreakdownSum );
-    }, [] );
+
+        return () => {
+            commands.unhook( "App/ChannelItem/SetBaseline" );
+            commands.unhook( "App/ChannelItem/SetFrequency" );
+            commands.unhook( "App/ChannelItem/SetAllocation" );
+
+            commands.unhook( "App/ChannelItem/SetBreakdown" );
+        };
+    }, [ commands ] );
 
     return (
         <div className="content">

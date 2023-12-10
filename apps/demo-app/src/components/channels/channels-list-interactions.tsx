@@ -65,7 +65,9 @@ function onAddRequest(
 }
 
 export function channelsListInteractions() {
-    const [ channelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
+    const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
+
+    const channelsListState = getChannelsListState();
 
     const setChannelsState = ( channels: ChannelItemComponent[] ) => setChannelsListState( { channels } );
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
@@ -98,8 +100,12 @@ export function channelsListInteractions() {
             onAddRequest( channelsListState.channels, setChannelsState ) );
 
         return () => {
-            // Since we are using `useAnyComponentCommands` we have to unhook manually
+            accordionItemCommands.forEach( ( command ) => {
+                command.unhook( "UI/AccordionItem/OnTitleChanged" );
+            } );
+
             commandsManager.unhookWithinComponent( "App/AddChannel" );
+            commandsManager.unhookWithinComponent( "App/ChannelsList" );
         };
     }, [ accordionItemCommands ] );
 }

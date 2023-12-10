@@ -98,11 +98,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
         };
 
         return (
-            <React.Suspense fallback={
-                this
-                    .props
-                    .fallback
-                || <p>Loading</p> }>
+            <React.Suspense fallback={ this.props.fallback || <p>Loading</p> }>
                 <Component/>
             </React.Suspense>
         );

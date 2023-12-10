@@ -32,11 +32,11 @@ export abstract class APIModuleBase {
     }
 
     public onUnmountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
-        this.unmount?.( component, context );
+        this.onUnmount?.( component, context );
     }
 
     public onMountInternal( component: APIComponent, context: CommandSingleComponentContext ) {
-        this.mount?.( component, context );
+        this.onMount?.( component, context );
     }
 
     public onUpdateInternal( component: APIComponent, context: CommandSingleComponentContext, state: any ) {
@@ -87,9 +87,9 @@ export abstract class APIModuleBase {
 
     protected load?( component: APIComponent, context: CommandSingleComponentContext ): void;
 
-    protected mount?( component: APIComponent, context: CommandSingleComponentContext ): void;
+    protected onMount?( component: APIComponent, context: CommandSingleComponentContext ): void;
 
-    protected unmount?( component: APIComponent, context: CommandSingleComponentContext ): void;
+    protected onUnmount?( component: APIComponent, context: CommandSingleComponentContext ): void;
 
     protected onUpdate?( component: APIComponent, context: CommandSingleComponentContext, state: {
         currentProps: any,

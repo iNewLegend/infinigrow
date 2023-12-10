@@ -76,6 +76,10 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
                 }
             }, 1000 );
         } );
+
+        return () => {
+            editableCommand.unhook();
+        };
     }, [ setIsEditing ] );
 
     // On enter, stop editing

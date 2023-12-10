@@ -3,6 +3,8 @@ import React from "react";
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
+import { useCommanderState } from "@infinigrow/commander/use-commands";
+
 import "@infinigrow/demo-app/src/components/channel/_channel-item.scss";
 
 import {
@@ -13,20 +15,26 @@ import {
 
 import { ChannelBreakdowns } from "@infinigrow/demo-app/src/components/channel/channel-breakdowns";
 
-import { formatNumericStringWithCommas } from "@infinigrow/demo-app/src/utils";
+import { formatNumericStringWithCommas, pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
+
+import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
+import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-consts";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
-import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-const initialState: ChannelState = {
-    frequency: "annually",
-    baseline: "0",
-    allocation: "equal",
-};
+export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
+    // If data props are set, assign them to state
+    if ( ! initialState.breaks &&  ( props as any ).breaks ) {
+        Object.assign( initialState, pickEnforcedKeys( ( props as any ), CHANNEL_LIST_STATE_DATA ) );
+    }
 
-export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, state ) => {
+    const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
+
+    const state = getState();
+
     const { frequency, baseline, allocation } = state;
 
     return (
@@ -49,7 +57,11 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelStat
     );
 };
 
-const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", ChannelItem, initialState, [
+const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", ChannelItem, {
+    frequency: "annually",
+    baseline: "0",
+    allocation: "equal",
+}, [
     class SetAllocation extends CommandBase {
         public static getName() {
             return "App/ChannelItem/SetAllocation";

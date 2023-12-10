@@ -18,7 +18,13 @@ if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
             id: "free-reviews",
             name: "Free Reviews",
             icon: TestPNG,
-        }
+        },
+
+        allocation: "equal",
+        baseline: "0",
+        frequency: "annually",
+
+        breaks: [],
     } ) );
 
     storage.setItem( "/v1/channels/2", JSON.stringify( {
@@ -27,7 +33,13 @@ if ( storage.getItem( "__DEFAULT_STORAGE__" ) === null ) {
             id: "paid-reviews",
             name: "Paid Reviews",
             icon: AffiliateProgramPNG,
-        }
+        },
+
+        allocation: "equal",
+        baseline: "0",
+        frequency: "annually",
+
+        breaks: [],
     } ) );
 }
 
