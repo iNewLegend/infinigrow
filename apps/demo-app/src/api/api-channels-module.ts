@@ -29,11 +29,18 @@ export class APIChannelsModule extends APIModuleBase {
     private channelsItemState: Record<string, any> = {};
 
     private channelsListMountOnce = false;
+    private autosaveHandler: ( () => void ) | undefined;
 
     public constructor( api: APICore ) {
         super( api );
 
         this.registerEndpoints();
+
+        window.addEventListener("beforeunload", () => {
+            if ( this.autosaveHandler ) {
+                this.autosaveHandler();
+            }
+        } );
     }
 
     public static getName(): string {
@@ -138,16 +145,25 @@ export class APIChannelsModule extends APIModuleBase {
             this.onChannelListMountOnce( component, context );
         }
 
+        this.initializeAutosaveHandler( context, component );
+    }
+
+    private initializeAutosaveHandler( context: CommandSingleComponentContext, component: APIComponent ) {
         const timer = setInterval( () => {
             if ( ! context.isMounted() ) {
                 clearInterval( timer );
                 return;
             }
-            this.onAutoSaveChannels( component, context );
+
+            if ( ! this.autosaveHandler ) {
+                this.autosaveHandler = this.onAutoSaveChannels.bind( this, component, context );
+            }
+
+            this.autosaveHandler();
         }, 5000 );
     }
 
-    // Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
+// Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
     private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
         if ( Object.keys( this.channelsItemState ).length === 0 ) return;
 
