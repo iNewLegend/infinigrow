@@ -5,9 +5,9 @@ import { Card, CardBody } from "@nextui-org/card";
 
 import { NextUIProvider } from "@nextui-org/system";
 
-import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-module";
+import { API } from "@infinigrow/api/src";
 
-import { API } from "@infinigrow/demo-app/src/api";
+import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-module";
 
 import AddChannel from "@infinigrow/demo-app/src/components/add-channel/add-channel";
 import Channels from "@infinigrow/demo-app/src/components/channels/channels-list";

@@ -8,12 +8,12 @@ import {
     INTERNAL_PROPS
 } from "@infinigrow/commander/constants";
 
-import { wrapPromiseSuspendable } from "@infinigrow/demo-app/src/api/api-utils.ts";
+import { wrapPromiseSuspendable } from "@infinigrow/api/src/api-utils";
 
-import type { APICore } from "@infinigrow/demo-app/src/api/api-core.tsx";
+import type { APICore } from "@infinigrow/api/src/api-core";
 
-import type { APIModuleBase } from "@infinigrow/demo-app/src/api/api-module-base.ts";
-import type { APIComponentProps } from "@infinigrow/demo-app/src/api/api-types.ts";
+import type { APIModuleBase } from "@infinigrow/api/src/api-module-base";
+import type { APIComponentProps } from "@infinigrow/api/src/api-types";
 
 export class APIComponent extends React.PureComponent<APIComponentProps> {
     private static api: APICore;
@@ -68,14 +68,17 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
             };
         };
 
+        // The resource will start loading
         const resource = wrapPromiseSuspendable( getComponentPromise() );
 
+        // The API Wrapper Component
         const Component = () => {
             const data = resource.read();
 
             const internalProps = {
                 ... data.element.props,
 
+                // Hooking lifecycle methods
                 [ INTERNAL_PROPS ]: {
                     handlers: {
                         [ INTERNAL_ON_LOAD ]: ( context: any ) => this.apiModule.onLoadInternal( this, context ),
@@ -90,7 +93,7 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
                 return (
                     <data.element.type { ... internalProps }>
                         { data.children.map( ( child: React.ReactElement, index: number ) => (
-                            <child.type key={ index } { ... child.props }>
+                            <child.type key={ index } { ... child.props } { ... internalProps }>
                                 { child.props.children }
                             </child.type>
                         ) ) }

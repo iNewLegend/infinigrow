@@ -20,3 +20,17 @@ export const CHANNEL_LIST_STATE_DATA: EnforceKeys<ChannelState> = {
     // Saved separately
     meta: false
 };
+
+export const CHANNEL_LIST_STATE_DATA_WITH_META: EnforceKeys<ChannelState> = {
+    allocation: true,
+    baseline: true,
+    frequency: true,
+
+    breaks: true,
+
+    // Visual
+    breakElements: false,
+
+    // Saved separately
+    meta: true
+};
