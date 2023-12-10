@@ -62,14 +62,19 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
 
             setTimeout( () => {
                 if ( ref.current ) {
-                    const currentName = ref.current.innerText = "";
-
                     ref.current.focus();
 
                     // Without this, the cursor will be at the start of the text
-                    ref.current.innerText = currentName;
+                    let sel = window.getSelection();
+
+                    if ( ! sel ) {
+                        return;
+                    }
+
+                    sel.selectAllChildren(ref.current);
+                    sel.collapseToEnd();
                 }
-            }, 500 );
+            }, 1000 );
         } );
     }, [ setIsEditing ] );
 
