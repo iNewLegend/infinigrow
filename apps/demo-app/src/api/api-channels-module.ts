@@ -224,6 +224,21 @@ export class APIChannelsModule extends APIModuleBase {
                 break;
             }
         }
+
+        const prevKeys = prevChannels.map(channel => channel.key);
+        const currentKeys = currentChannels.map(channel => channel.key);
+
+        const removedKeys = prevKeys.filter(key => !currentKeys.includes(key));
+
+        for ( const key of removedKeys ) {
+            this.onChannelRemoved( key );
+        }
+    }
+
+    private onChannelRemoved( key: string ) {
+        this.api.fetch( "DELETE", `v1/channels/${ key }`, {}, ( r: { json: () => any; } ) => r.json() );
+
+        delete this.channelsItemState[ key ];
     }
 
     // Handle when the meta data of a channel changes. This involves sending a POST request to the API with the new meta data.

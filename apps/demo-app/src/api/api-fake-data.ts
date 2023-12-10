@@ -93,7 +93,7 @@ globalThis.fetch = ( input: RequestInfo | URL, init?: RequestInit ): Promise<Res
             return Promise.resolve( new Response( data, baseInit ) );
         } else if ( method === "DELETE" ) {
             storage.removeItem( path );
-            return Promise.resolve( new Response( undefined, baseInit ) );
+            return Promise.resolve( new Response( "{\"ok\": true}", baseInit ) );
         } else {
             return Promise.reject( new Error( `Method ${ method } not implemented` ) );
         }
