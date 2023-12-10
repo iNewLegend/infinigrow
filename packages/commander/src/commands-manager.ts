@@ -88,7 +88,9 @@ class CommandsManager {
         return executionResult;
     }
 
-    public hook( id: CommandIdArgs, callback: ( result?: any, args?: CommandArgs ) => any ) {
+    public hook( id: CommandIdArgs, callback: ( result?: any, args?: CommandArgs ) => any, options?: {
+        __ignoreDuplicatedHookError?: boolean;
+    } ) {
         const { componentNameUnique, componentName, commandName } = id;
 
         if ( ! this.commands[ componentName ] ) {
@@ -100,6 +102,21 @@ class CommandsManager {
         // Check if id exist within the component context
         if ( ! singleComponentContext.commands[ commandName ] ) {
             throw new Error( `Command '${ commandName }' not registered for component '${ componentNameUnique }'` );
+        }
+
+        const listeners = singleComponentContext.emitter.listeners( commandName );
+
+        if ( ! options?.__ignoreDuplicatedHookError ) {
+            // Check if the same callback is already registered
+            if ( listeners.length > 0 && listeners.find( l => l.name === callback.name ) ) {
+                console.warn(
+                    `Probably duplicated hook in '${ commandName }'\n` +
+                    `callback '${ callback.name }()' already hooked for component '${ componentNameUnique }'` +
+                    "The hook will be ignored, to avoid this error bound the callback or pass options: { __ignoreDuplicatedHookError: true }"
+                );
+
+                return;
+            }
         }
 
         return singleComponentContext.emitter.on( commandName, callback );
