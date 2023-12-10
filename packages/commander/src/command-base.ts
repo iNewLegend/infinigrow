@@ -1,13 +1,15 @@
-import type { CommandOptions , CommandArgs, CommandRegisterArgs } from "@infinigrow/commander/types";
+import { EventEmitter } from "events";
+
+import type { CommandOptions, CommandArgs, CommandRegisterArgs } from "@infinigrow/commander/types";
 
 import type React from "react";
-
-import type { EventEmitter } from "events";
 
 /**
  * Each created command is registered within the commands manager, and the instance created only once per command.
  */
 export abstract class CommandBase<TState = React.ComponentState> {
+    private static globalEmitter: EventEmitter = new EventEmitter();
+
     public readonly commandName: string;
 
     private options: CommandOptions<TState> = {};
@@ -16,8 +18,23 @@ export abstract class CommandBase<TState = React.ComponentState> {
         throw new Error( "You have should implement `static getName()` method, since the commands run by name ;)" );
     }
 
+    public static globalHook( callback: ( result?: any, args?: CommandArgs ) => any ) {
+        this.globalEmitter.on( this.getName(), callback );
+    }
+
     public constructor( private args: CommandRegisterArgs ) {
         this.commandName = ( new.target as typeof CommandBase ).getName();
+    }
+
+    public global() {
+        const global = ( this.constructor as typeof CommandBase );
+
+        return global as unknown as {
+            getName: typeof CommandBase.getName;
+
+            globalEmitter: EventEmitter;
+            globalHook: typeof CommandBase.globalHook;
+        };
     }
 
     public execute( emitter: EventEmitter, args: CommandArgs, options?: CommandOptions<TState> ): any {
@@ -28,6 +45,8 @@ export abstract class CommandBase<TState = React.ComponentState> {
         const result = this.apply?.( args );
 
         emitter.emit( this.commandName, result, args );
+
+        this.global().globalEmitter.emit( this.commandName, result, args );
 
         this.options = {};
 
@@ -60,7 +79,7 @@ export abstract class CommandBase<TState = React.ComponentState> {
     }
 
     private validateState() {
-        if (  "undefined" === typeof this.options.state || "function" !== typeof this.options.setState ) {
+        if ( "undefined" === typeof this.options.state || "function" !== typeof this.options.setState ) {
             throw new Error( "There is no state for the current command, you should use `withCommands( component, class, state, commands )` including the state to enable it" );
         }
     }
