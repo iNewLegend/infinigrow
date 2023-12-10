@@ -97,6 +97,7 @@ export function withCommands(
 
         private $$commander = {
             isMounted: false,
+            lifecycleHandlers: {} as any,
         };
 
         private isMounted()  {
@@ -117,7 +118,7 @@ export function withCommands(
             const id = this.context.getNameUnique();
 
             if ( this.props[ INTERNAL_PROPS ]?.handlers ) {
-                this.context.internalHandlers = this.props[ INTERNAL_PROPS ].handlers;
+                this.$$commander.lifecycleHandlers = this.props[ INTERNAL_PROPS ].handlers;
             }
 
             if ( commandsManager.isContextRegistered( id ) ) {
@@ -159,15 +160,17 @@ export function withCommands(
                             callback( self.state );
                         }
                     } );
-                }
+                },
+
+                lifecycleHandlers: this.$$commander.lifecycleHandlers,
             } );
         }
 
         public componentWillUnmount() {
             this.$$commander.isMounted = false;
 
-            if ( this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ] ) {
-                this.context.internalHandlers[ INTERNAL_ON_UNMOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
+            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_UNMOUNT ] ) {
+                this.$$commander.lifecycleHandlers[ INTERNAL_ON_UNMOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
             }
 
             const componentNameUnique = this.context.getNameUnique();
@@ -176,10 +179,10 @@ export function withCommands(
         }
 
         public componentDidUpdate( prevProps: any, prevState: any, snapshot?: any ) {
-            if ( this.context.internalHandlers[ INTERNAL_ON_UPDATE ] ) {
+            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ] ) {
                 const context = core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() );
 
-                this.context.internalHandlers[ INTERNAL_ON_UPDATE ]( context, {
+                this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ]( context, {
                     currentProps: this.props,
                     currentState: this.state,
                     prevProps,
@@ -202,14 +205,14 @@ export function withCommands(
 
             core[ SET_TO_CONTEXT ]( id, { props: this.props } );
 
-            if ( this.context.internalHandlers[ INTERNAL_ON_MOUNT ] ) {
-                this.context.internalHandlers[ INTERNAL_ON_MOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
+            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_MOUNT ] ) {
+                this.$$commander.lifecycleHandlers[ INTERNAL_ON_MOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
             }
         }
 
         public render() {
-            if ( this.context.internalHandlers[ INTERNAL_ON_LOAD ] ) {
-                this.context.internalHandlers[ INTERNAL_ON_LOAD ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
+            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_LOAD ] ) {
+                this.$$commander.lifecycleHandlers[ INTERNAL_ON_LOAD ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
             }
 
             return <Component { ... this.props } />;
@@ -219,7 +222,7 @@ export function withCommands(
     function handleAncestorContexts( context: CommandComponentContextProps ) {
         const parentContext = React.useContext( ComponentIdContext );
 
-        if ( parentContext.internalHandlers ) {
+        if ( parentContext.isSet ) {
             context.parent = parentContext;
         }
 
@@ -253,10 +256,10 @@ export function withCommands(
         const componentNameUnique = `${ componentName }-${ React.useId() }`;
 
         const context: CommandComponentContextProps = {
+            isSet: true,
+
             getNameUnique: () => componentNameUnique,
             getComponentName: () => componentName,
-
-            internalHandlers: {},
         };
 
         handleAncestorContexts( context );

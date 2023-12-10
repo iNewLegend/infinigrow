@@ -48,16 +48,18 @@ export interface CommandSingleComponentContext {
     getComponentContext: () => CommandComponentContextProps;
 
     emitter: EventEmitter;
+
+    lifecycleHandlers: any,
 }
 
 export interface CommandComponentContextProps {
+    isSet: boolean;
+
     children?: { [ nameUnique: string ]: CommandComponentContextProps };
     parent?: CommandComponentContextProps;
 
     getComponentName(): string;
     getNameUnique: () => string;
-
-    internalHandlers: any,
 }
 
 export type CommandArgs = {

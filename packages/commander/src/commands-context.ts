@@ -4,11 +4,12 @@ import type { CommandComponentContextProps } from "@infinigrow/commander/types";
 
 // An internal context used by `use-commands`
 export const ComponentIdContext = React.createContext<CommandComponentContextProps>( {
+    isSet: false,
+
     getNameUnique: () => {
         throw new Error( "ComponentCommandContext.Provider is not set. Using default getUniqueName function." );
     },
     getComponentName: () => {
         throw new Error( "ComponentCommandContext.Provider is not set. Using default getUniqueName function." );
     },
-    internalHandlers: undefined,
 } );

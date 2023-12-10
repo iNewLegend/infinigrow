@@ -35,8 +35,20 @@ class Core {
         getComponentContext: CommandSingleComponentContext["getComponentContext"];
         getState: CommandSingleComponentContext[ "getState" ];
         setState: CommandSingleComponentContext[ "setState" ];
+        lifecycleHandlers: any,
     } ): void {
-        const { componentNameUnique, componentName, commands, emitter, getComponentContext, getState, setState, isMounted, key } = args;
+        const {
+            componentNameUnique,
+            componentName,
+            commands,
+            emitter,
+            getComponentContext,
+            getState,
+            setState,
+            isMounted,
+            key,
+            lifecycleHandlers
+        } = args;
 
         this.__devDebug( `Registering component '${ componentNameUnique }'` );
 
@@ -56,6 +68,7 @@ class Core {
             isMounted,
             key,
             props: undefined,
+            lifecycleHandlers,
         };
     }
 
