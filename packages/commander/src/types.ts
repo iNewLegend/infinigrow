@@ -30,6 +30,7 @@ export interface CommandSingleComponentContext {
     };
     componentNameUnique: string;
     componentName: string;
+    isMounted: boolean;
     key: React.Key;
     props: any;
     extendedInitialState?: boolean

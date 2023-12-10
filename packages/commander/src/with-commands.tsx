@@ -105,7 +105,7 @@ export function withCommands(
             this.registerInternalContext();
         }
 
-        private registerInternalContext() {
+        private registerInternalContext( isMounted = false) {
             const id = this.context.getNameUnique();
 
             if ( this.props[ INTERNAL_PROPS ]?.handlers ) {
@@ -122,6 +122,8 @@ export function withCommands(
 
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
+
+                isMounted,
 
                 key: this.props.$$key,
 
@@ -163,7 +165,7 @@ export function withCommands(
         public componentDidMount() {
             const id = this.context.getNameUnique();
 
-            this.registerInternalContext();
+            this.registerInternalContext( true );
 
             core[ SET_TO_CONTEXT ]( id, { props: this.props } );
 
