@@ -13,7 +13,10 @@ export const ChannelsListTable: React.FC<{}> = () => {
 
     const channelsListState = getChannelsListState();
 
-    const channelsRenderer = channelsListState.channels.filter( ( channel ) => channel.props.breaks.length > 0 );
+    const channelsRenderer = channelsListState.channels.filter(
+        // @ts-ignore
+        ( channel ) => channel.props.breaks?.length > 0
+    );
 
     return (
         <div className="channel-list-table pt-[45px]">

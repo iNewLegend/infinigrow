@@ -13,7 +13,7 @@ import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/comp
 
 import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
 
-import { ArrowSkinnyRight } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
 import type { InputProps } from "@nextui-org/input";
 
@@ -35,6 +35,8 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
     const tableRef = React.useRef<HTMLDivElement>( null );
 
     const [ arrowRightOrLeft, setArrowRightOrLeft ] = React.useState<"right" | "left">( "right" );
+
+    const [ isEditing, setIsEditing ] = React.useState<boolean[]>( new Array( state.breaks!.length ).fill( false ) );
 
     // All the code made for "SkinnyRight" is hacky, but that fine for this demo situation.
     function smoothScroll( element: { scrollLeft: number; }, target: number, duration: number ) {
@@ -77,15 +79,9 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
     }
 
     function onArrowClick() {
-        if ( arrowRightOrLeft === "right" ) {
-            setArrowRightOrLeft( "left" );
+        setArrowRightOrLeft( arrowRightOrLeft === "right" ? "left" : "right" );
 
-            scroll();
-        } else {
-            setArrowRightOrLeft( "right" );
-
-            scroll();
-        }
+        scroll();
     }
 
     return (
@@ -100,19 +96,48 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
                     );
                 } ) }
                 { state.breaks!.map( ( budgetBreak, index ) => {
+                    const disabled = ! isEditing[ index ];
+
                     const inputProps: InputProps = {
                         ... DEFAULT_CHANNEL_BREAK_INPUT_PROPS,
 
+                        disabled,
+
                         variant: "flat",
 
-                        disabled: true,
+                        endContent: ( <span className="control-area">
+                            <Pencil onClick={ () => {
+                                const newIsEditing = [ ... isEditing ];
+
+                                newIsEditing[ index ] = ! isEditing[ index ];
+
+                                setIsEditing( newIsEditing );
+                            } }/>
+
+                            <Save onClick={ () => {
+                                const newIsEditing = [ ... isEditing ];
+
+                                newIsEditing[ index ] = ! isEditing[ index ];
+
+                                setIsEditing( newIsEditing );
+                            } }/>
+
+                            <Cancel onClick={ () => {
+                                const newIsEditing = [ ... isEditing ];
+
+                                newIsEditing[ index ] = ! isEditing[ index ];
+
+                                setIsEditing( newIsEditing );
+                            } }/>
+
+                        </span> ),
 
                         value: formatNumericStringToFraction( budgetBreak.value ),
                     };
 
                     return (
-                        <div key={ index } className="channel-item-table-budget">
-                            <Input { ... inputProps } />
+                        <div key={ index } className="channel-item-table-budget" data-disabled={ disabled }>
+                            <Input { ... inputProps }/>
                         </div>
                     );
                 } ) }

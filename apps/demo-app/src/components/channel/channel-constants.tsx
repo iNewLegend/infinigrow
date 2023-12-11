@@ -50,8 +50,8 @@ export const DEFAULT_CHANNEL_BREAK_INPUT_PROPS: InputProps = {
     labelPlacement: "outside",
     placeholder: "0",
     startContent: (
-        <div className="pointer-events-none flex items-center">
-        <span className="text-slate-700 text-sm font-medium leading-[21px]">$</span>
-            </div>
+        <div className="pointer-events-none flex items-center ">
+            <span className="currency-sign text-slate-700 text-sm font-medium leading-[21px]">$</span>
+        </div>
     ),
 };
