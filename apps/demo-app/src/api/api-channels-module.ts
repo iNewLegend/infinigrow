@@ -221,7 +221,7 @@ export class APIChannelsModule extends APIModuleBase {
         if ( Object.keys( this.channelsItemState ).length === 0 ) return;
         if ( Object.keys( this.channelsListState ).length === 0 ) return;
 
-        const key = this.getKeyFromContext( context );
+        const key = context.props.$$api_$key$$;
 
         try {
             const apiData = await this.fetchAPIGetChannel( key );
@@ -355,6 +355,9 @@ export class APIChannelsModule extends APIModuleBase {
     private shouldUpdateState( apiData: any, key: string, context: CommandSingleComponentContext ) {
         const currentItemState = this.channelsItemState[ key ];
 
+        // If the current item state is not available, then you cannot update the state.
+        if ( ! currentItemState.currentProps ) return false;
+
         const vdom = pickEnforcedKeys( { ... currentItemState.currentProps, ... context.getState() },
             CHANNEL_LIST_STATE_DATA_WITH_META
         );
@@ -362,11 +365,6 @@ export class APIChannelsModule extends APIModuleBase {
         const api = pickEnforcedKeys( apiData, CHANNEL_LIST_STATE_DATA_WITH_META );
 
         return JSON.stringify( vdom ) !== JSON.stringify( api );
-    }
-
-    // Get the key from the context. This involves finding the channel with the same id as the context's props.
-    private getKeyFromContext( context: CommandSingleComponentContext ) {
-        return this.channelsListState.currentState.channels.find( ( i: any ) => i.meta.id === context.props.meta.id ).key;
     }
 
     // Fetch the channel data from the API.
