@@ -22,6 +22,12 @@ export abstract class CommandBase<TState = React.ComponentState> {
         this.globalEmitter.on( this.getName(), callback );
     }
 
+    public static globalUnhook() {
+        this.globalEmitter.listeners( this.getName() ).forEach( ( listener: any ) => {
+            this.globalEmitter.off( this.getName(), listener );
+        } );
+    }
+
     public constructor( private args: CommandRegisterArgs ) {
         this.commandName = ( new.target as typeof CommandBase ).getName();
     }
@@ -34,6 +40,7 @@ export abstract class CommandBase<TState = React.ComponentState> {
 
             globalEmitter: EventEmitter;
             globalHook: typeof CommandBase.globalHook;
+            globalUnhook: typeof CommandBase.globalUnhook;
         };
     }
 
