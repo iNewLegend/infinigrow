@@ -345,6 +345,7 @@ export class APIChannelsModule extends APIModuleBase {
                     CHANNEL_LIST_STATE_DATA_WITH_META
                 );
 
+                console.log( "APIChannelsModule: saveChannels() - stateToSave", stateToSave );
 
                 this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( r: {
                     json: () => any;
@@ -361,6 +362,8 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Update the state with the data from the API.
     private updateState( apiData: any, context: CommandSingleComponentContext ) {
+        console.log( "APIChannelsModule: updateState()", apiData );
+
         if ( apiData.breaks ) {
             apiData.breaks = apiData.breaks.map( ( i: any ) => ( {
                 ... i,
