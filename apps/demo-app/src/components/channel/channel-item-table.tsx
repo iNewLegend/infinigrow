@@ -1,3 +1,5 @@
+import React from "react";
+
 import moment from "moment";
 
 import { Input } from "@nextui-org/input";
@@ -11,20 +13,85 @@ import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/comp
 
 import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
 
+import { ArrowSkinnyRight } from "@infinigrow/demo-app/src/ui-theme/symbols";
+
+import type { InputProps } from "@nextui-org/input";
+
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
-import type { InputProps} from "@nextui-org/input";
+declare global {
+    interface Math {
+        easeInOutQuad( t: number, b: number, c: number, d: number ): number;
+    }
+}
 
 export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
     const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
 
     const state = getState();
 
+    const tableRef = React.useRef<HTMLDivElement>( null );
+
+    const [ arrowRightOrLeft, setArrowRightOrLeft ] = React.useState<"right" | "left">( "right" );
+
+    // All the code made for "SkinnyRight" is hacky, but that fine for this demo situation.
+    function smoothScroll( element: { scrollLeft: number; }, target: number, duration: number ) {
+        let start = element.scrollLeft,
+            change = target - start,
+            startTime = performance.now(),
+            val;
+
+        function animateScroll( currentTime: number ) {
+            let elapsed = currentTime - startTime;
+            val = Math.easeInOutQuad( elapsed, start, change, duration );
+
+            element.scrollLeft = val;
+
+            if ( elapsed < duration ) {
+                window.requestAnimationFrame( animateScroll );
+            }
+        };
+
+        Math.easeInOutQuad = function ( t, b, c, d ) {
+            t /= d / 2;
+            if ( t < 1 ) return c / 2 * t * t + b;
+            t--;
+            return -c / 2 * ( t * ( t - 2 ) - 1 ) + b;
+        };
+
+        window.requestAnimationFrame( animateScroll );
+    }
+
+    function scroll() {
+        const table = tableRef.current;
+
+        if ( table ) {
+            if ( arrowRightOrLeft === "right" ) {
+                smoothScroll( table, table.scrollWidth - table.clientWidth, 500 );
+            } else {
+                smoothScroll( table, 0, 500 );
+            }
+        }
+    }
+
+    function onArrowClick() {
+        if ( arrowRightOrLeft === "right" ) {
+            setArrowRightOrLeft( "left" );
+
+            scroll();
+        } else {
+            setArrowRightOrLeft( "right" );
+
+            scroll();
+        }
+    }
+
     return (
-        <div className="channel-item-table">
-            <div className="channel-item-table-breaks">
+        <div className={ `channel-item-table ${ arrowRightOrLeft }` } ref={ tableRef }>
+            <ArrowSkinnyRight onClick={ () => onArrowClick() }/>
+            <div className="channel-item-table-breaks" ref={ tableRef }>
                 { state.breaks!.map( ( budgetBreak, index ) => {
                     return (
                         <div key={ index } className="channel-item-table-date">
@@ -58,7 +125,7 @@ const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", Chan
         frequency: "annually",
         baseline: "0",
         allocation: "equal",
-        breaks: []
+        breaks: [],
     }, []
 );
 

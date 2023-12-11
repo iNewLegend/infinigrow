@@ -13,12 +13,13 @@ import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
 
 import { ChannelsListAccordion } from "@infinigrow/demo-app/src/components//channels/channels-list-accordion.tsx";
 
+import { ChannelsListTable } from "@infinigrow/demo-app/src/components/channels/channels-list-table";
+
 import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
-import { ChannelsListTable } from "./channels-list-table.tsx";
 
 export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelListState> = ( props ) => {
     let channels: ChannelItemAccordionComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];

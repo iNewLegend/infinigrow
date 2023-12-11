@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useCommanderState, useCommanderComponent } from "@infinigrow/commander/use-commands";
+import { useCommanderState } from "@infinigrow/commander/use-commands";
 
 import ChannelItemTable from "@infinigrow/demo-app/src/components/channel/channel-item-table.tsx";
 
@@ -9,16 +9,21 @@ import "@infinigrow/demo-app/src/components/channels/_channels-list-table.scss";
 import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types.ts";
 
 export const ChannelsListTable: React.FC<{}> = () => {
-    const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
-
-    const channelsCommands = useCommanderComponent( "App/ChannelsList" );
+    const [ getChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
     const channelsListState = getChannelsListState();
+
+    const channelsRenderer = channelsListState.channels.filter( ( channel ) => channel.props.breaks.length > 0 );
 
     return (
         <div className="channel-list-table pt-[45px]">
             {
-                channelsListState.channels.map( ( channel, index ) => {
+                0 === channelsRenderer.length && (
+                    <div className="channel-list-table-heading-text text-center">
+                        There are { channelsListState.channels.length } channels, but none of them have any budget allocation.
+                    </div>
+                ) ||
+                channelsRenderer.map( ( channel, index ) => {
                     return (
                         <div key={index} className="channel-list-table-row">
                             <div className="channel-list-table-heading">
