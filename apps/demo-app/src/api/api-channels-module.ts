@@ -235,6 +235,7 @@ export class APIChannelsModule extends APIModuleBase {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async onChannelItemUnmount( component: APIComponent, context: CommandSingleComponentContext ) {
         this.autosaveHandler?.();
     }
@@ -287,9 +288,13 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     private onChannelRemoved( key: string ) {
+
         this.api.fetch( "DELETE", `v1/channels/${ key }`, {}, ( r: { json: () => any; } ) => r.json() );
 
         delete this.channelsItemState[ key ];
+
+        // Safe removed.
+        delete this.lastChannelsItemState[ key ];
     }
 
     // Handle when the meta data of a channel changes. This involves sending a POST request to the API with the new meta data.
