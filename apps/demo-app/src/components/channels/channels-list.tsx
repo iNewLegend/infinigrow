@@ -5,6 +5,8 @@ import { CommandBase } from "@infinigrow/commander/command-base";
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/use-commands";
 
+import { META_DATA_KEYS } from "@infinigrow/demo-app/src/components/channel/channel-consts";
+
 import { channelsListInteractions } from "@infinigrow/demo-app/src/components/channels/channels-list-interactions";
 
 import ChannelItem from "@infinigrow/demo-app/src/components/channel/channel-item";
@@ -15,16 +17,13 @@ import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/ac
 
 import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
 
-import type { ChannelState , ChannelItemComponent, ChannelMetaData } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type {  ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
-import type { EnforceKeys } from "@infinigrow/demo-app/src/utils";
-import { META_DATA_KEYS } from "../channel/channel-consts.ts";
-
 
 export function toAccordionItem(
     channel: ChannelItemComponent,

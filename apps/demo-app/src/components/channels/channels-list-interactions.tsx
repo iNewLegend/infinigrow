@@ -45,31 +45,45 @@ function onEditRequest(
 
 function onRemoveRequest(
     channel: ChannelItemComponent,
-    channelsState: ChannelItemComponent[],
-    setChannelsState: ( channels: ChannelItemComponent[] ) => void,
+    getChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 0 ],
+    setChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 1 ]
 ) {
+    const newList = getChannelsListState().channels.filter( ( c ) => c.props.meta.id !== channel.props.meta.id );
+
     // Remove the channel from the list
-    setChannelsState( channelsState.filter( ( c ) => c.props.meta.id !== channel.props.meta.id ) );
+    setChannelsListState( prevChannelsState => {
+        return {
+            ... prevChannelsState,
+            channels: newList,
+        };
+    } );
 }
 
 function onAddRequest(
-    channelsState: ChannelItemComponent[],
-    setChannelsState: ( channels: ChannelItemComponent[] ) => void,
+    getChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 0 ],
+    setChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 1 ]
 ) {
-    // Add a new channel to the list
-    setChannelsState( [ ... channelsState,
-        // @ts-ignore
-        <ChannelItem key={ Math.random() } id={ Math.random() } name={ "New Channel" + channelsState.length }
-                     icon={ channelsState[ 0 ].props.meta.icon }/>
-    ] );
+    // Create a new channel object
+    const newChannelProps = {
+        meta: {
+            id: Math.random().toString(),
+            name: "New Channel #" + ( getChannelsListState().channels.length + 1),
+            icon: `https://api.dicebear.com/7.x/icons/svg?seed=${ performance.now() }`
+        }
+    };
+
+    // Create a new ChannelItem component with the new channel object as props
+    const newChannelComponent = <ChannelItem { ... newChannelProps } key={ getChannelsListState().channels.length }/>;
+
+    // Add the new ChannelItem component to the channelsState array
+    setChannelsListState( prevChannelsState => {
+        return { ... prevChannelsState, channels: [ ... prevChannelsState.channels, newChannelComponent ] };
+    } );
 }
 
 export function channelsListInteractions() {
     const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
-    const channelsListState = getChannelsListState();
-
-    const setChannelsState = ( channels: ChannelItemComponent[] ) => setChannelsListState( { channels } );
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
 
     const channelsCommands = useCommanderComponent( "App/ChannelsList" ),
@@ -88,7 +102,7 @@ export function channelsListInteractions() {
             onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
 
         channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
-            onRemoveRequest( args.channel,  channelsListState.channels, setChannelsState ) );
+            onRemoveRequest( args.channel, getChannelsListState, setChannelsListState ) );
 
         const AddChannelCommand = {
             commandName: "App/AddChannel",
@@ -97,7 +111,7 @@ export function channelsListInteractions() {
         };
 
         commandsManager.hook( AddChannelCommand, () =>
-            onAddRequest( channelsListState.channels, setChannelsState ) );
+            onAddRequest( getChannelsListState, setChannelsListState ) );
 
         return () => {
             accordionItemCommands.forEach( ( command ) => {

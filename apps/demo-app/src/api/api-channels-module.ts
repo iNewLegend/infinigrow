@@ -36,7 +36,7 @@ export class APIChannelsModule extends APIModuleBase {
 
         this.registerEndpoints();
 
-        window.addEventListener("beforeunload", () => {
+        window.addEventListener( "beforeunload", () => {
             if ( this.autosaveHandler ) {
                 this.autosaveHandler();
             }
@@ -60,6 +60,57 @@ export class APIChannelsModule extends APIModuleBase {
     protected async responseHandler( component: APIComponent, element: CommandFunctionComponent, response: Response ): Promise<any> {
         const result = await response.json();
         return this.handleResponseBasedOnElementName( element.getName!(), result, component );
+    }
+
+    // Handle the mounting of the component. This involves different handling depending on the component name.
+    protected onMount( component: APIComponent, context: CommandSingleComponentContext ) {
+        switch ( context.componentName ) {
+            case "App/ChannelsList":
+                this.onChannelsListMount( component, context );
+                break;
+            case "App/ChannelItem":
+                this.onChannelItemMount( component, context );
+                break;
+            default:
+                throw new Error( `APIChannelsModule: onMount() - Unknown component: ${ context.componentName }` );
+        }
+    }
+
+    // Handle the updating of the component. This involves different handling depending on the component name.
+    protected onUpdate( component: APIComponent, context: CommandSingleComponentContext, state: {
+        currentState: any,
+        prevState: any,
+        currentProps: any
+    } ) {
+        const { currentState, prevState } = state;
+        switch ( context.componentName ) {
+            case "App/ChannelsList":
+                this.channelsListState = state;
+                if ( currentState.channels !== prevState.channels ) {
+                    this.onChannelsChanged( prevState.channels, currentState.channels );
+                }
+                break;
+            case "App/ChannelItem":
+                this.channelsItemState[ state.currentProps.$$api_$key$$ ] = state;
+                break;
+            default:
+                throw new Error( `APIChannelsModule: onUpdate() - Unknown component: ${ context.componentName }` );
+        }
+    }
+
+    private initializeAutosaveHandler( context: CommandSingleComponentContext, component: APIComponent ) {
+        const timer = setInterval( () => {
+            if ( ! context.isMounted() ) {
+                clearInterval( timer );
+                return;
+            }
+
+            if ( ! this.autosaveHandler ) {
+                this.autosaveHandler = this.onAutoSaveChannels.bind( this, component, context );
+            }
+
+            this.autosaveHandler();
+        }, 5000 );
     }
 
     // Handle the API response based on the element name. This allows different handling for different types of responses.
@@ -102,42 +153,6 @@ export class APIChannelsModule extends APIModuleBase {
         return result;
     }
 
-    // Handle the mounting of the component. This involves different handling depending on the component name.
-    protected onMount( component: APIComponent, context: CommandSingleComponentContext ) {
-        switch ( context.componentName ) {
-            case "App/ChannelsList":
-                this.onChannelsListMount( component, context );
-                break;
-            case "App/ChannelItem":
-                this.onChannelItemMount( component, context );
-                break;
-            default:
-                throw new Error( `APIChannelsModule: onMount() - Unknown component: ${ context.componentName }` );
-        }
-    }
-
-    // Handle the updating of the component. This involves different handling depending on the component name.
-    protected onUpdate( component: APIComponent, context: CommandSingleComponentContext, state: {
-        currentState: any,
-        prevState: any,
-        currentProps: any
-    } ) {
-        const { currentState, prevState } = state;
-        switch ( context.componentName ) {
-            case "App/ChannelsList":
-                this.channelsListState = state;
-                if ( currentState.channels !== prevState.channels ) {
-                    this.onChannelsChanged( prevState.channels, currentState.channels );
-                }
-                break;
-            case "App/ChannelItem":
-                this.channelsItemState[ state.currentProps.$$api_$key$$ ] = state;
-                break;
-            default:
-                throw new Error( `APIChannelsModule: onUpdate() - Unknown component: ${ context.componentName }` );
-        }
-    }
-
     // Handle the mounting of the channels list. This involves setting up a timer to auto save channels every 5 seconds.
     private onChannelsListMount( component: APIComponent, context: CommandSingleComponentContext ) {
         if ( ! this.channelsListMountOnce ) {
@@ -146,74 +161,6 @@ export class APIChannelsModule extends APIModuleBase {
         }
 
         this.initializeAutosaveHandler( context, component );
-    }
-
-    private initializeAutosaveHandler( context: CommandSingleComponentContext, component: APIComponent ) {
-        const timer = setInterval( () => {
-            if ( ! context.isMounted() ) {
-                clearInterval( timer );
-                return;
-            }
-
-            if ( ! this.autosaveHandler ) {
-                this.autosaveHandler = this.onAutoSaveChannels.bind( this, component, context );
-            }
-
-            this.autosaveHandler();
-        }, 5000 );
-    }
-
-// Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
-    private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
-        if ( Object.keys( this.channelsItemState ).length === 0 ) return;
-
-        const key = this.getKeyFromContext( context );
-
-        try {
-            const apiData = await this.fetchAPIGetChannel( key );
-
-            if ( this.shouldUpdateState( apiData, key, context ) ) {
-                this.updateState( apiData, context );
-            }
-
-        } catch ( error ) {
-            console.error( "An error occurred while fetching API data", error );
-        }
-    }
-
-    // Get the key from the context. This involves finding the channel with the same id as the context's props.
-    private getKeyFromContext( context: CommandSingleComponentContext ) {
-        return this.channelsListState.currentState.channels.find( ( i: any ) => i.meta.id === context.props.meta.id ).key;
-    }
-
-    // Fetch the channel data from the API.
-    private async fetchAPIGetChannel( key: string ) {
-        return await this.api.fetch( "GET", `v1/channels/${ key }`, {}, ( res: { json: () => any; } ) => res.json() );
-    }
-
-    // Determine whether the state should be updated. This involves comparing the current state with the data from the API.
-    private shouldUpdateState( apiData: any, key: string, context: CommandSingleComponentContext ) {
-        const currentItemState = this.channelsItemState[ key ];
-
-        const vdom = pickEnforcedKeys( { ... currentItemState.currentProps, ... context.getState() },
-            CHANNEL_LIST_STATE_DATA_WITH_META
-        );
-
-        const api = pickEnforcedKeys( apiData, CHANNEL_LIST_STATE_DATA_WITH_META );
-
-        return JSON.stringify( vdom ) !== JSON.stringify( api );
-    }
-
-    // Update the state with the data from the API.
-    private updateState( apiData: any, context: CommandSingleComponentContext ) {
-        if ( apiData.breaks ) {
-            apiData.breaks = apiData.breaks.map( ( i: any ) => ( {
-                ... i,
-                date: new Date( i.date ),
-            } ) );
-        }
-
-        context.setState( apiData );
     }
 
     // Handle the first time the channels list is mounted. This involves setting up hooks for when the selection is attached or detached.
@@ -232,23 +179,69 @@ export class APIChannelsModule extends APIModuleBase {
         } );
     }
 
+    // Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
+    private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
+        if ( Object.keys( this.channelsItemState ).length === 0 ) return;
+
+        const key = this.getKeyFromContext( context );
+
+        try {
+            const apiData = await this.fetchAPIGetChannel( key );
+
+            if ( this.shouldUpdateState( apiData, key, context ) ) {
+                this.updateState( apiData, context );
+            }
+
+        } catch ( error ) {
+            console.error( "An error occurred while fetching API data", error );
+        }
+    }
+
     // Handle when the channels change. This involves comparing the previous and current channels and updating the meta data if necessary.
     private onChannelsChanged( prevChannels: any[], currentChannels: any[] ) {
-        for ( let i = 0 ; i < currentChannels.length ; i++ ) {
-            if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
-                this.onChannelsMetaDataChanged( prevChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
-                break;
+        const prevKeys = prevChannels.map( channel => channel.key );
+        const currentKeys = currentChannels.map( channel => channel.key );
+
+        const addedKeys = currentKeys.filter( key => ! prevKeys.includes( key ) );
+
+        for ( const key of addedKeys ) {
+            const newChannel = currentChannels.find( channel => channel.key === key );
+
+            if ( newChannel && newChannel.props && newChannel.props.meta ) {
+                this.onChannelAdded( newChannel );
             }
         }
+        if ( addedKeys.length > 0 ) {
+            return;
+        }
 
-        const prevKeys = prevChannels.map(channel => channel.key);
-        const currentKeys = currentChannels.map(channel => channel.key);
-
-        const removedKeys = prevKeys.filter(key => !currentKeys.includes(key));
-
+        const removedKeys = prevKeys.filter( key => ! currentKeys.includes( key ) );
         for ( const key of removedKeys ) {
             this.onChannelRemoved( key );
         }
+        if ( removedKeys.length > 0 ) {
+            return;
+        }
+
+        for ( let i = 0 ; i < currentChannels.length ; i++ ) {
+            if ( ! prevChannels[ i ] || ! currentChannels[ i ] ) continue;
+            if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
+                this.onChannelsMetaDataChanged( prevChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
+            }
+        }
+    }
+
+    private onChannelAdded( newChannel: any ) {
+        // Add the new channel to the channelsItemState object
+        this.channelsItemState[ newChannel.key ] = newChannel;
+
+        // Send a POST request to the API to create the new channel
+        this.api.fetch( "POST", `v1/channels/${ newChannel.key }`, {
+            key: newChannel.key,
+            meta: newChannel.props.meta,
+        }, ( r: {
+            json: () => any;
+        } ) => r.json() );
     }
 
     private onChannelRemoved( key: string ) {
@@ -259,7 +252,13 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Handle when the meta data of a channel changes. This involves sending a POST request to the API with the new meta data.
     private onChannelsMetaDataChanged( key: string, prevMeta: any, currentMeta: any ) {
-        this.api.fetch( "POST", "v1/channels/:key", { key, meta: currentMeta }, ( r: { json: () => any; } ) => r.json() );
+        this.api.fetch( "POST", "v1/channels/:key", { key, meta: currentMeta }, ( r: {
+            json: () => any;
+        } ) => r.json() );
+    }
+
+    private onAutoSaveChannels( component: APIComponent, context: CommandSingleComponentContext ) {
+        this.saveChannels( component, context );
     }
 
     // Save the channels. This involves finding all the channel item contexts and sending a POST request to the API with the state of each channel.
@@ -297,12 +296,46 @@ export class APIChannelsModule extends APIModuleBase {
 
             const stateToSave = pickEnforcedKeys( state, CHANNEL_LIST_STATE_DATA );
 
-            this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( r: { json: () => any; } ) => r.json() );
+            this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( r: {
+                json: () => any;
+            } ) => r.json() );
         }
     }
 
-    private onAutoSaveChannels( component: APIComponent, context: CommandSingleComponentContext ) {
-        this.saveChannels( component, context );
+    // Update the state with the data from the API.
+    private updateState( apiData: any, context: CommandSingleComponentContext ) {
+        if ( apiData.breaks ) {
+            apiData.breaks = apiData.breaks.map( ( i: any ) => ( {
+                ... i,
+                date: new Date( i.date ),
+            } ) );
+        }
+
+        context.setState( apiData );
     }
+
+    // Determine whether the state should be updated. This involves comparing the current state with the data from the API.
+    private shouldUpdateState( apiData: any, key: string, context: CommandSingleComponentContext ) {
+        const currentItemState = this.channelsItemState[ key ];
+
+        const vdom = pickEnforcedKeys( { ... currentItemState.currentProps, ... context.getState() },
+            CHANNEL_LIST_STATE_DATA_WITH_META
+        );
+
+        const api = pickEnforcedKeys( apiData, CHANNEL_LIST_STATE_DATA_WITH_META );
+
+        return JSON.stringify( vdom ) !== JSON.stringify( api );
+    }
+
+    // Get the key from the context. This involves finding the channel with the same id as the context's props.
+    private getKeyFromContext( context: CommandSingleComponentContext ) {
+        return this.channelsListState.currentState.channels.find( ( i: any ) => i.meta.id === context.props.meta.id ).key;
+    }
+
+    // Fetch the channel data from the API.
+    private async fetchAPIGetChannel( key: string ) {
+        return await this.api.fetch( "GET", `v1/channels/${ key }`, {}, ( res: { json: () => any; } ) => res.json() );
+    }
+
 }
 
