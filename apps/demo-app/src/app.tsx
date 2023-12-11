@@ -72,6 +72,9 @@ function App() {
     return (
         <NextUIProvider>
             <Button onClick={ () => {
+                // Do not let the rescue callback to run
+                window.onbeforeunload = null;
+
                 localStorage.clear();
                 location.reload();
             } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={true} radius={ "none" }>Reset Demo</Button>;
