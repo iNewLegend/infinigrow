@@ -19,7 +19,7 @@ import { formatNumericStringWithCommas, pickEnforcedKeys } from "@infinigrow/dem
 
 import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-constants.ts";
+import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-constants";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
@@ -33,9 +33,7 @@ export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, Ch
 
     const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
 
-    const state = getState();
-
-    const { frequency, baseline, allocation } = state;
+    const { frequency, baseline, allocation } = getState();
 
     return (
         <div className="channel-item-accordion">

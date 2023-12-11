@@ -6,33 +6,17 @@ import { Input } from "@nextui-org/input";
 
 import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/use-commands";
 
+import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/components/channel/channel-constants.tsx";
+
 import { formatNumericStringToFraction } from "@infinigrow/demo-app/src/utils";
 
 import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-import type { ChannelState, ChannelBreakData } from "@infinigrow/demo-app/src/components/channel/channel-types";
 import type { InputProps } from "@nextui-org/input";
 
-import type { ChannelBudgetFrequencyProps } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
+import type { ChannelState, ChannelBreakData } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-const DEFAULT_BREAK_INPUT_PROPS: InputProps = {
-    classNames: {
-        base: "input",
-        mainWrapper: "wrapper",
-        inputWrapper: "trigger",
-        label: "currency",
-    },
-    type: "string",
-    variant: "bordered",
-    radius: "none",
-    labelPlacement: "outside",
-    placeholder: "0",
-    startContent: (
-        <div className="pointer-events-none flex items-center">
-            <span className="text-slate-700 text-sm font-medium leading-[21px]">$</span>
-        </div>
-    ),
-};
+import type { ChannelBudgetFrequencyProps } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
 
 function generateBreaks(
     frequency: ChannelBudgetFrequencyProps["frequency"],
@@ -113,7 +97,7 @@ function getBreakElements(
         const disabled = allocation === "equal";
 
         const inputProps: InputProps = {
-            ... DEFAULT_BREAK_INPUT_PROPS,
+            ... DEFAULT_CHANNEL_BREAK_INPUT_PROPS,
 
             label,
             disabled,

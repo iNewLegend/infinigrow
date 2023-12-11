@@ -4,13 +4,13 @@ import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/
 
 import { channelsListAccordionInteractions } from "@infinigrow/demo-app/src/components/channels/channels-list-accordion-interactions";
 
-import ChannelItem from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
+import ChannelItemAccordion from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
 
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
-import type { ChannelListAccordionProps , ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
+import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 
 import type {  ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
@@ -25,7 +25,7 @@ export function toAccordionItem(
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
         itemKey: channel.props.meta.id,
 
-        children: <ChannelItem { ... channel.props } key={ channel.props.meta.id }/>,
+        children: <ChannelItemAccordion { ... channel.props } key={ channel.props.meta.id }/>,
         heading: {
             title: channel.props.meta.name,
             icon: channel.props.meta.icon,
@@ -55,7 +55,7 @@ export function toAccordionItem(
                           key={ "channel-" + channel.props.meta.id + "-accordion-item-" + index.toString() }/>;
 }
 
-export const ChannelsListAccordion: React.FC<{}> = () => {
+export const ChannelsListAccordion: React.FC = () => {
     const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
     const channelsCommands = useCommanderComponent( "App/ChannelsList" );

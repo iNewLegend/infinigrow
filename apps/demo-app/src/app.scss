@@ -59,10 +59,10 @@ img.icon {
 
 .layout header {
     .add-channel {
-        @apply hover:bg-gray-100;
-
         font-size: 15px;
-        border: 1px solid rgba(178, 187, 213, 0.50);
-        filter: drop-shadow(0px 1px 2px #E6E8F0);
+
+        @apply bg-gradient-to-r from-[#FAFAFC] to-white shadow-sm rounded border border-[rgba(178,187,213,0.50)];
+
+        @apply hover:underline;
     }
 }

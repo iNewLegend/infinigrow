@@ -1,0 +1,29 @@
+.channel-item-table {
+    @apply self-start;
+    @apply max-w-[1000px] h-full;
+    @apply pt-[18px] ps-[25px];
+    @apply overflow-x-hidden;
+
+    .channel-item-table-breaks {
+        @apply w-max;
+        @apply grid grid-cols-12 grid-rows-2 gap-y-[3px] gap-x-[50px];
+
+        .channel-item-table-date {
+            @apply text-slate-400 text-[11px] font-bold font-sans uppercase leading-none;
+        }
+
+        .channel-item-table-budget {
+            .trigger {
+                @apply bg-white;
+                @apply shadow-none;
+                @apply p-0 m-0;
+            }
+
+            .wrapper {
+                @apply w-[100px];
+            }
+        }
+
+    }
+
+}
