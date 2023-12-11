@@ -12,7 +12,7 @@ import { APIModuleBase } from "@infinigrow/api/src/api-module-base.ts";
 import {
     CHANNEL_LIST_STATE_DATA,
     CHANNEL_LIST_STATE_DATA_WITH_META
-} from "@infinigrow/demo-app/src/components/channel/channel-consts";
+} from "@infinigrow/demo-app/src/components/channel/channel-constants";
 
 import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
 
@@ -182,6 +182,7 @@ export class APIChannelsModule extends APIModuleBase {
     // Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
     private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
         if ( Object.keys( this.channelsItemState ).length === 0 ) return;
+        if ( Object.keys( this.channelsListState ).length === 0 ) return;
 
         const key = this.getKeyFromContext( context );
 

@@ -13,7 +13,7 @@ import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-mod
 
 import AddChannel from "@infinigrow/demo-app/src/components/add-channel/add-channel";
 import Channels from "@infinigrow/demo-app/src/components/channels/channels-list";
-import Channel from "@infinigrow/demo-app/src/components/channel/channel-item";
+import Channel from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
 
 import Layout from "@infinigrow/demo-app/src/ui-layout/layout";
 
@@ -29,6 +29,7 @@ function BudgetAllocation() {
             fallback={ <div className="loading">Loading <span className="dots">◌</span></div> }
             module={ APIChannelsModule }
             type={ Channels }
+            chainProps={ { view: "accordion" } }
         >
             <API.Component type={ Channel }/>
         </API.Component>
@@ -37,11 +38,14 @@ function BudgetAllocation() {
 
 function BudgetOverview() {
     return (
-        <Card>
-            <CardBody>
-                <p>Tab 2 content</p>
-            </CardBody>
-        </Card>
+        <API.Component
+            fallback={ <div className="loading">Loading <span className="dots">◌</span></div> }
+            module={ APIChannelsModule }
+            type={ Channels }
+            chainProps={ { view: "table" } }
+        >
+            <API.Component type={ Channel }/>
+        </API.Component>
     );
 }
 

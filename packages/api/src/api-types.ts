@@ -17,4 +17,5 @@ export interface APIComponentProps {
     module?: APIModuleBaseStatic;
     fallback?: React.ReactElement;
     type: CommandFunctionComponent;
+    chainProps?: any;
 }

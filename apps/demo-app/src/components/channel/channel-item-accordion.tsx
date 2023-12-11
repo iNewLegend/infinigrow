@@ -1,11 +1,11 @@
 import React from "react";
 
-import { withCommands } from "@infinigrow/commander/with-commands";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
+import { withCommands } from "@infinigrow/commander/with-commands";
 import { useCommanderState } from "@infinigrow/commander/use-commands";
 
-import "@infinigrow/demo-app/src/components/channel/_channel-item.scss";
+import "@infinigrow/demo-app/src/components/channel/_channel-item-accordion.scss";
 
 import {
     ChannelBudgetFrequency,
@@ -19,13 +19,13 @@ import { formatNumericStringWithCommas, pickEnforcedKeys } from "@infinigrow/dem
 
 import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-consts";
+import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-constants.ts";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
 
-export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
+export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
     // If data props are set, assign them to state
     if ( ! initialState.breaks &&  ( props as any ).breaks ) {
         Object.assign( initialState, pickEnforcedKeys( ( props as any ), CHANNEL_LIST_STATE_DATA ) );
@@ -38,7 +38,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelStat
     const { frequency, baseline, allocation } = state;
 
     return (
-        <div className="channel-item">
+        <div className="channel-item-accordion">
             <div className="channel-budget-settings">
                 <ChannelBudgetFrequency frequency={ frequency }/>
                 <ChannelBudgetBaseline frequency={ frequency } baseline={ baseline } allocation={ allocation }/>
@@ -50,6 +50,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelStat
                     <p className="fs-2">Budget Breakdown</p>
                     <p className="description">By default, your budget will be equally divided throughout the year. You
                         can manually change the budget allocation, either now or later.</p>
+
                     <ChannelBreakdowns/>
                 </div>
             </div>
@@ -57,7 +58,7 @@ export const ChannelItem: CommandFunctionComponent<ChannelItemProps, ChannelStat
     );
 };
 
-const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", ChannelItem, {
+const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", ChannelItemAccordion, {
     frequency: "annually",
     baseline: "0",
     allocation: "equal",

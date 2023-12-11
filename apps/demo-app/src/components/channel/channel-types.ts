@@ -1,13 +1,13 @@
 import type React from "react";
 
-import type { ChannelItem } from "components/channel/channel-item";
+import type { ChannelItemAccordion } from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
 
 import type {
     ChannelBudgetFrequencyProps,
     BudgetAllocationType
 } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings";
 
-export type ChannelItemComponent = React.ReactComponentElement<typeof ChannelItem>;
+export type ChannelItemAccordionComponent = React.ReactComponentElement<typeof ChannelItemAccordion>;
 
 export enum UpdateFromType {
     FROM_UNKNOWN,

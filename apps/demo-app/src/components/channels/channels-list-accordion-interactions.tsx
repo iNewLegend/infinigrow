@@ -9,15 +9,15 @@ import {
     useCommanderChildrenComponents
 } from "@infinigrow/commander/use-commands";
 
-import { ChannelItem } from "@infinigrow/demo-app/src/components/channel/channel-item";
+import { ChannelItemAccordion } from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
 
 import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 
-import type { ChannelItemComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 // On channel list, request edit title name
 function onEditRequest(
-    channel: ChannelItemComponent,
+    channel: ChannelItemAccordionComponent,
     setSelected: ( selected: { [ key: string ]: boolean } ) => void,
     channelsCommands: ReturnType<typeof useCommanderComponent>,
     accordionItemCommands: ReturnType<typeof useCommanderChildrenComponents>,
@@ -44,7 +44,7 @@ function onEditRequest(
 }
 
 function onRemoveRequest(
-    channel: ChannelItemComponent,
+    channel: ChannelItemAccordionComponent,
     getChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 0 ],
     setChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 1 ]
 ) {
@@ -67,13 +67,14 @@ function onAddRequest(
     const newChannelProps = {
         meta: {
             id: Math.random().toString(),
-            name: "New Channel #" + ( getChannelsListState().channels.length + 1),
+            name: "New Channel #" + ( getChannelsListState().channels.length + 1 ),
             icon: `https://api.dicebear.com/7.x/icons/svg?seed=${ performance.now() }`
         }
     };
 
     // Create a new ChannelItem component with the new channel object as props
-    const newChannelComponent = <ChannelItem { ... newChannelProps } key={ getChannelsListState().channels.length }/>;
+    const newChannelComponent = <ChannelItemAccordion { ... newChannelProps }
+                                                      key={ getChannelsListState().channels.length }/>;
 
     // Add the new ChannelItem component to the channelsState array
     setChannelsListState( prevChannelsState => {
@@ -81,7 +82,7 @@ function onAddRequest(
     } );
 }
 
-export function channelsListInteractions() {
+export function channelsListAccordionInteractions() {
     const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
@@ -96,21 +97,20 @@ export function channelsListInteractions() {
             return;
         }
 
-        const addChannelCommand = useAnyComponentCommands( "App/AddChannel" );
-
         channelsCommands.hook( "App/ChannelsList/EditRequest", ( r, args: any ) =>
             onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
 
         channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
             onRemoveRequest( args.channel, getChannelsListState, setChannelsListState ) );
 
-        const AddChannelCommand = {
+        const addChannelCommands = useAnyComponentCommands( "App/AddChannel" );
+        const addChannelCommandId = {
             commandName: "App/AddChannel",
             componentName: "App/AddChannel",
-            componentNameUnique: addChannelCommand[ 0 ].componentNameUnique,
+            componentNameUnique: addChannelCommands[ 0 ].componentNameUnique,
         };
 
-        commandsManager.hook( AddChannelCommand, () =>
+        commandsManager.hook( addChannelCommandId, () =>
             onAddRequest( getChannelsListState, setChannelsListState ) );
 
         return () => {
@@ -118,8 +118,9 @@ export function channelsListInteractions() {
                 command.unhook( "UI/AccordionItem/OnTitleChanged" );
             } );
 
-            commandsManager.unhookWithinComponent( "App/AddChannel" );
-            commandsManager.unhookWithinComponent( "App/ChannelsList" );
+            commandsManager.unhookWithinComponent( channelsCommands.getId() );
+
+            commandsManager.unhookWithinComponent( addChannelCommandId.componentNameUnique );
         };
     }, [ accordionItemCommands ] );
 }

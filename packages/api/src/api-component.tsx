@@ -39,10 +39,12 @@ export class APIComponent extends React.PureComponent<APIComponentProps> {
 
         this.apiModule = this.api.getModule( this.props.module );
 
+        const chainProps = props.chainProps || {};
+
         this.element = async () => {
             const props = await this.apiModule.getProps( this.props.type, this );
 
-            return React.createElement( this.props.type, props );
+            return React.createElement( this.props.type, { ... props, ... chainProps } );
         };
     }
 

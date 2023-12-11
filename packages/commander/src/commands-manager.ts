@@ -162,6 +162,20 @@ class CommandsManager {
         return this.commands[ componentName ];
     }
 
+    public isHooked( id: CommandIdArgs ) {
+        const { componentNameUnique, commandName } = id;
+
+        const singleComponentContext = core[ GET_INTERNAL_SYMBOL ]( componentNameUnique, true ) as CommandSingleComponentContext;
+
+        if ( ! singleComponentContext ) {
+            return false;
+        }
+
+        const listeners = singleComponentContext.emitter.listeners( commandName );
+
+        return listeners.length > 0;
+    }
+
     public isContextRegistered( componentNameUnique: string ) {
         return !! core[ GET_INTERNAL_SYMBOL ]( componentNameUnique, true );
     }
