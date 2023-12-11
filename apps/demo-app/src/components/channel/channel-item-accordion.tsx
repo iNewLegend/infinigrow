@@ -15,22 +15,15 @@ import {
 
 import { ChannelBreakdowns } from "@infinigrow/demo-app/src/components/channel/channel-breakdowns";
 
-import { formatNumericStringWithCommas, pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
+import { formatNumericStringWithCommas } from "@infinigrow/demo-app/src/utils";
 
 import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
-
-import { CHANNEL_LIST_STATE_DATA } from "@infinigrow/demo-app/src/components/channel/channel-constants";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
 
 export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
-    // If data props are set, assign them to state
-    if ( ! initialState.breaks &&  ( props as any ).breaks ) {
-        Object.assign( initialState, pickEnforcedKeys( ( props as any ), CHANNEL_LIST_STATE_DATA ) );
-    }
-
     const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
 
     const { frequency, baseline, allocation } = getState();

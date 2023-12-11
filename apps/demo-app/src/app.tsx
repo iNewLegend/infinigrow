@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Tab, Tabs } from "@nextui-org/tabs";
-import { Card, CardBody } from "@nextui-org/card";
 
 import { NextUIProvider } from "@nextui-org/system";
 

@@ -20,6 +20,7 @@ import type { APICore } from "@infinigrow/api/src/api-core.tsx";
 export class APIChannelsModule extends APIModuleBase {
     private channelsListState: Record<string, any> = {};
     private channelsItemState: Record<string, any> = {};
+
     private lastChannelsItemState: Record<string, any> = {};
 
     private autosaveDebounceTimer: Timer | undefined;
@@ -30,15 +31,24 @@ export class APIChannelsModule extends APIModuleBase {
 
         this.registerEndpoints();
 
+        this.initializeAutosaveHandler();
+
         const dataRescuerCallback = () => {
             console.log( "APIChannelsModule: dataRescuerCallback()", {
                 autoSaveHandler: this.autosaveHandler,
+                lastChannelsItemState: this.lastChannelsItemState,
             } );
 
             if ( this.autosaveHandler ) {
                 // Save immediately when the page is closed.
-                return this.autosaveHandler( true );
+                this.autosaveHandler( true );
             }
+
+            if ( Object.keys( this.lastChannelsItemState ).length > 0 ) {
+                return false;
+            }
+
+            return true;
         };
 
         window.onbeforeunload = function () {
@@ -121,29 +131,23 @@ export class APIChannelsModule extends APIModuleBase {
         }
     }
 
-    private initializeAutosaveHandler( context: CommandSingleComponentContext, component: APIComponent ) {
+    private initializeAutosaveHandler() {
         if ( ! this.autosaveHandler ) {
             this.autosaveHandler = ( immediate?: boolean ) => {
                 if ( immediate ) {
-                    this.saveChannels( component, context );
+                    this.saveChannels();
                     return true;
                 } else {
-                    this.autoSaveChannels( component, context );
+                    this.autoSaveChannels();
                 }
 
                 return false;
             };
+
+            setInterval( () => {
+                this.autosaveHandler?.();
+            }, 5000 );
         }
-
-        const timer = setInterval( () => {
-            if ( ! context.isMounted() ) {
-                this.autosaveHandler = undefined;
-                clearInterval( timer );
-                return;
-            }
-
-            this.autosaveHandler?.();
-        }, 5000 );
     }
 
     // Handle the API response based on the element name. This allows different handling for different types of responses.
@@ -187,6 +191,7 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     // Handle the mounting of the channels list. This involves setting up a timer to auto save channels every 5 seconds.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private onChannelsListMount( component: APIComponent, context: CommandSingleComponentContext ) {
         const commands = commandsManager.get( "UI/Accordion" );
 
@@ -194,18 +199,17 @@ export class APIChannelsModule extends APIModuleBase {
             onSelectionDetached = commands[ "UI/Accordion/onSelectionDetached" ];
 
         const saveChannelsCallback = () => {
-            this.autoSaveChannels( component, context );
+            this.autoSaveChannels();
         };
 
         onSelectionAttached.global().globalHook( saveChannelsCallback );
         onSelectionDetached.global().globalHook( saveChannelsCallback );
-
-        this.initializeAutosaveHandler( context, component );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private onChannelsListUnmount( component: APIComponent, context: CommandSingleComponentContext ) {
         // Save immediately when the channels list is unmounted.
-        this.saveChannels( component, context );
+        this.saveChannels();
 
         const commands = commandsManager.get( "UI/Accordion" );
 
@@ -218,8 +222,9 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
     private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
+        if ( ! context.props.$$api_$key$$ ) return;
+
         if ( Object.keys( this.channelsItemState ).length === 0 ) return;
-        if ( Object.keys( this.channelsListState ).length === 0 ) return;
 
         const key = context.props.$$api_$key$$;
 
@@ -231,13 +236,20 @@ export class APIChannelsModule extends APIModuleBase {
             }
 
         } catch ( error ) {
-            console.error( "An error occurred while fetching API data", error );
+            console.warn( "An error occurred while fetching API data, the state will not be updated, this area considered to safe", error );
         }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async onChannelItemUnmount( component: APIComponent, context: CommandSingleComponentContext ) {
-        this.autosaveHandler?.();
+        // If state is the same as the last known state, then it is safe to remove it.
+        if ( Object.values( this.lastChannelsItemState ).find( l => l.currentState === context.getState() ) ) {
+            delete this.lastChannelsItemState[ context.props.$$api_$key$$ ];
+
+            return;
+        }
+
+        this.autosaveHandler?.( true );
     }
 
     // Handle when the channels change. This involves comparing the previous and current channels and updating the meta data if necessary.
@@ -288,7 +300,6 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     private onChannelRemoved( key: string ) {
-
         this.api.fetch( "DELETE", `v1/channels/${ key }`, {}, ( r: { json: () => any; } ) => r.json() );
 
         delete this.channelsItemState[ key ];
@@ -304,7 +315,7 @@ export class APIChannelsModule extends APIModuleBase {
         } ) => r.json() );
     }
 
-    private async autoSaveChannels( component: APIComponent, channelsListComponentContext: CommandSingleComponentContext ): Promise<true> {
+    private async autoSaveChannels(): Promise<true> {
         if ( this.autosaveDebounceTimer ) {
             clearTimeout( this.autosaveDebounceTimer );
         }
@@ -312,19 +323,21 @@ export class APIChannelsModule extends APIModuleBase {
         // This will ensure that the channels are saved once per x requests during the debounce period.
         return new Promise( ( resolve ) => {
             this.autosaveDebounceTimer = setTimeout( () => {
-                this.saveChannels( component, channelsListComponentContext );
+                this.saveChannels();
                 resolve( true );
             }, 800 );
         } );
     }
 
     // Save the channels. This involves finding all the channel item contexts and sending a POST request to the API with the state of each channel.
-    private saveChannels( component: APIComponent, context: CommandSingleComponentContext ) {
-        console.log( "APIChannelsModule: saveChannels() for component: ", context.componentNameUnique );
-
+    private saveChannels() {
         const lastKnownStates = Object.values( this.lastChannelsItemState );
 
+        if ( ! lastKnownStates.length ) return;
+
         try {
+            console.log( "APIChannelsModule: saveChannels()" );
+
             lastKnownStates.forEach( ( state: any ) => {
                 const key = state.currentProps.$$api_$key$$;
 
@@ -332,14 +345,16 @@ export class APIChannelsModule extends APIModuleBase {
                     CHANNEL_LIST_STATE_DATA_WITH_META
                 );
 
+
                 this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( r: {
                     json: () => any;
-                } ) => r.json() );
+                } ) => {
+                    delete this.lastChannelsItemState[ key ];
+                } );
+
             } );
         } catch ( error ) {
-            console.warn( "An error occurred while saving channels, autoSave is reschedule!", error );
-
-            this.autoSaveChannels( component, context );
+            this.autosaveHandler?.();
         }
 
     }
