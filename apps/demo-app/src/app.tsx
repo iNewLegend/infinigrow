@@ -76,7 +76,7 @@ function App() {
 
                 localStorage.clear();
                 location.reload();
-            } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={true} radius={ "none" }>Reset Demo</Button>;
+            } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={true} radius={ "none" }>Reset Demo</Button>
 
             <Layout { ... layoutProps }>
                 <Tabs { ... tabsProps }> {

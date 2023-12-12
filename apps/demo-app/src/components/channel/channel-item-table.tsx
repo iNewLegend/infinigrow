@@ -5,7 +5,7 @@ import moment from "moment";
 import { Input } from "@nextui-org/input";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
-import { useCommanderState } from "@infinigrow/commander/use-commands";
+import { useCommanderState, useCommanderComponent } from "@infinigrow/commander/use-commands";
 
 import { formatNumericStringToFraction } from "@infinigrow/demo-app/src/utils";
 
@@ -15,9 +15,12 @@ import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
 
 import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
-import type { InputProps } from "@nextui-org/input";
+import * as commands from "@infinigrow/demo-app/src/components/channel/commands";
+
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { InputProps } from "@nextui-org/input";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
@@ -27,16 +30,52 @@ declare global {
     }
 }
 
-export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
-    const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
+export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, ChannelState> = () => {
+    const [ getState, _setState , isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" ),
+        state = getState();
 
-    const state = getState();
+    const [ isEditing, setIsEditing ] = React.useState<boolean[]>( new Array( state.breaks!.length ).fill( false ) );
+    const [ arrowRightOrLeft, setArrowRightOrLeft ] = React.useState<"right" | "left">( "right" );
+    const [ cloneState, setCloneState ] = React.useState( state );
+
+    React.useEffect( () => {
+        if ( isMounted() ) {
+            setCloneState( {
+                ... state,
+            } );
+        }
+    }, [ isMounted ] );
 
     const tableRef = React.useRef<HTMLDivElement>( null );
 
-    const [ arrowRightOrLeft, setArrowRightOrLeft ] = React.useState<"right" | "left">( "right" );
+    const commands = useCommanderComponent( "App/ChannelItem" );
 
-    const [ isEditing, setIsEditing ] = React.useState<boolean[]>( new Array( state.breaks!.length ).fill( false ) );
+    const setBreakdown = ( index: number, value: string, force = false ) => {
+        if ( ! force ) {
+            commands.run( "App/ChannelItem/SetBreakdown", {
+                index,
+                value,
+                setState: setCloneState,
+                source: UpdateSource.FROM_BUDGET_OVERVIEW
+            } );
+
+            return;
+        }
+
+        commands.run( "App/ChannelItem/SetBreakdown", { index, value, source: UpdateSource.FROM_BUDGET_OVERVIEW } );
+
+        const newIsEditing = [ ... isEditing ];
+        newIsEditing[ index ] = false;
+        setIsEditing( newIsEditing );
+
+        setCloneState( {
+            ... cloneState,
+            breaks: cloneState.breaks!.map( ( budgetBreak, i ) => ( {
+                ... budgetBreak,
+                value: i === index ? value : budgetBreak.value,
+            } ) ),
+        } );
+    };
 
     // All the code made for "SkinnyRight" is hacky, but that fine for this demo situation.
     function smoothScroll( element: { scrollLeft: number; }, target: number, duration: number ) {
@@ -95,7 +134,7 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
                         </div>
                     );
                 } ) }
-                { state.breaks!.map( ( budgetBreak, index ) => {
+                { cloneState.breaks!.map( ( budgetBreak, index ) => {
                     const disabled = ! isEditing[ index ];
 
                     const inputProps: InputProps = {
@@ -104,6 +143,10 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
                         disabled,
 
                         variant: "flat",
+
+                        onChange: ( event ) => {
+                            ! disabled && setBreakdown( index, event.target.value );
+                        },
 
                         endContent: ( <span className="control-area">
                             <Pencil onClick={ () => {
@@ -115,19 +158,11 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
                             } }/>
 
                             <Save onClick={ () => {
-                                const newIsEditing = [ ... isEditing ];
-
-                                newIsEditing[ index ] = ! isEditing[ index ];
-
-                                setIsEditing( newIsEditing );
+                                setBreakdown( index, cloneState.breaks![ index ].value, true );
                             } }/>
 
                             <Cancel onClick={ () => {
-                                const newIsEditing = [ ... isEditing ];
-
-                                newIsEditing[ index ] = ! isEditing[ index ];
-
-                                setIsEditing( newIsEditing );
+                                setBreakdown( index, state.breaks![ index ].value, true );
                             } }/>
 
                         </span> ),
@@ -151,7 +186,9 @@ const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", Chan
         baseline: "0",
         allocation: "equal",
         breaks: [],
-    }, []
+    }, [
+        commands.SetBreakdown,
+    ]
 );
 
 export default $$;

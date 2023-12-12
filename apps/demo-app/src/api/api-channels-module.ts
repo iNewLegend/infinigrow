@@ -231,8 +231,8 @@ export class APIChannelsModule extends APIModuleBase {
         try {
             const apiData = await this.fetchAPIGetChannel( key );
 
-            if ( context.isMounted() && this.shouldUpdateState( apiData, key, context ) ) {
-                this.updateState( apiData, context );
+            if ( context.isMounted() && this.shouldUpdateStateFromRemote( apiData, key, context ) ) {
+                this.updateStateFromRemote( apiData, context );
             }
 
         } catch ( error ) {
@@ -361,8 +361,8 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     // Update the state with the data from the API.
-    private updateState( apiData: any, context: CommandSingleComponentContext ) {
-        console.log( "APIChannelsModule: updateState()", apiData );
+    private updateStateFromRemote( apiData: any, context: CommandSingleComponentContext ) {
+        console.log( "APIChannelsModule: updateStateFromRemote()", apiData );
 
         if ( apiData.breaks ) {
             apiData.breaks = apiData.breaks.map( ( i: any ) => ( {
@@ -375,7 +375,7 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     // Determine whether the state should be updated. This involves comparing the current state with the data from the API.
-    private shouldUpdateState( apiData: any, key: string, context: CommandSingleComponentContext ) {
+    private shouldUpdateStateFromRemote( apiData: any, key: string, context: CommandSingleComponentContext ) {
         const currentItemState = this.channelsItemState[ key ];
 
         // If the current item state is not available, then you cannot update the state.
