@@ -245,7 +245,7 @@ export function withCommands(
                     }
                 }
             }
-        }, [] );
+        }, [ currentContext, parentContext ] );
     }
 
     /**

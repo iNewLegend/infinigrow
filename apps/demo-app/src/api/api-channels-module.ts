@@ -123,6 +123,10 @@ export class APIChannelsModule extends APIModuleBase {
                 }
                 break;
             case "App/ChannelItem":
+                if ( ! state.currentProps.$$api_$key$$ ) {
+                    return;
+                }
+
                 this.channelsItemState[ state.currentProps.$$api_$key$$ ] = state;
                 this.lastChannelsItemState[ state.currentProps.$$api_$key$$ ] = state;
                 break;
@@ -254,6 +258,13 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Handle when the channels change. This involves comparing the previous and current channels and updating the meta data if necessary.
     private onChannelsChanged( prevChannels: any[], currentChannels: any[] ) {
+        for ( let i = 0 ; i < currentChannels.length ; i++ ) {
+            if ( ! prevChannels[ i ] || ! currentChannels[ i ] ) continue;
+            if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
+                this.onChannelsMetaDataChanged( currentChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
+            }
+        }
+
         const prevKeys = prevChannels.map( channel => channel.key );
         const currentKeys = currentChannels.map( channel => channel.key );
 
@@ -276,13 +287,6 @@ export class APIChannelsModule extends APIModuleBase {
         }
         if ( removedKeys.length > 0 ) {
             return;
-        }
-
-        for ( let i = 0 ; i < currentChannels.length ; i++ ) {
-            if ( ! prevChannels[ i ] || ! currentChannels[ i ] ) continue;
-            if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
-                this.onChannelsMetaDataChanged( prevChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
-            }
         }
     }
 

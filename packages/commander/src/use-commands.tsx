@@ -82,6 +82,7 @@ export function useCommanderComponent( componentName: string, context?: CommandC
         // TODO: Remove.
         getId: () => id,
         getKey: () => core[ GET_INTERNAL_SYMBOL ]( id ).key,
+        isAlive: () => !! core[ GET_INTERNAL_SYMBOL ]( id, true ),
         getInternalContext: () => core[ GET_INTERNAL_SYMBOL ]( id ),
         getContext: () => context!,
         getState: <TState extends React.ComponentState>() => core[ GET_INTERNAL_SYMBOL ]( id ).getState() as TState,
@@ -92,6 +93,18 @@ export function useCommanderChildrenComponents( componentName: string ) {
     const componentContext = React.useContext( ComponentIdContext );
 
     const [ childrenComponents, setChildrenComponents ] = React.useState<ReturnType<typeof useCommanderComponent>[]>( [] );
+
+    function countDescendants( context: CommandComponentContextProps ) {
+        let count = 0;
+
+        if ( context.children ) {
+            for ( const key in context.children ) {
+                count += 1 + countDescendants( context.children[ key ] );
+            }
+        }
+
+        return count;
+    }
 
     React.useEffect( () => {
         const children = componentContext.children;
@@ -121,7 +134,7 @@ export function useCommanderChildrenComponents( componentName: string ) {
         loopChildren( children );
 
         setChildrenComponents( newChildrenComponents );
-    }, [ componentContext, componentName ] );
+    }, [ componentContext, componentName, countDescendants( componentContext ) ] );
 
     return childrenComponents;
 }
