@@ -236,7 +236,7 @@ export class APIChannelsModule extends APIModuleBase {
             }
 
         } catch ( error ) {
-            console.warn( "An error occurred while fetching API data, the state will not be updated, this area considered to safe", error );
+            console.warn( "An error occurred while fetching API data, the state will not be updated, this area considered to be safe", error );
         }
     }
 
@@ -357,7 +357,6 @@ export class APIChannelsModule extends APIModuleBase {
         } catch ( error ) {
             this.autosaveHandler?.();
         }
-
     }
 
     // Update the state with the data from the API.

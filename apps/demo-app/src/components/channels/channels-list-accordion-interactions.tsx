@@ -83,7 +83,7 @@ function onAddRequest(
 }
 
 export function channelsListAccordionInteractions() {
-    const [ getChannelsListState, setChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
+    const [ getChannelsListState, setChannelsListState, isMounted ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
 
@@ -103,6 +103,17 @@ export function channelsListAccordionInteractions() {
         channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
             onRemoveRequest( args.channel, getChannelsListState, setChannelsListState ) );
 
+        return () => {
+            accordionItemCommands.forEach( ( command ) => {
+                command.unhook( "UI/AccordionItem/OnTitleChanged" );
+            } );
+
+            commandsManager.unhookWithinComponent( channelsCommands.getId() );
+
+        };
+    }, [ accordionItemCommands ] );
+
+    React.useEffect( () => {
         const addChannelCommands = useAnyComponentCommands( "App/AddChannel" );
         const addChannelCommandId = {
             commandName: "App/AddChannel",
@@ -114,13 +125,7 @@ export function channelsListAccordionInteractions() {
             onAddRequest( getChannelsListState, setChannelsListState ) );
 
         return () => {
-            accordionItemCommands.forEach( ( command ) => {
-                command.unhook( "UI/AccordionItem/OnTitleChanged" );
-            } );
-
-            commandsManager.unhookWithinComponent( channelsCommands.getId() );
-
             commandsManager.unhookWithinComponent( addChannelCommandId.componentNameUnique );
         };
-    }, [ accordionItemCommands ] );
+    }, [ isMounted() ] );
 }

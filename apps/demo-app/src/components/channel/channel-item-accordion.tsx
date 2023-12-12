@@ -19,8 +19,8 @@ import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/co
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
-export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
-    const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
+export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = () => {
+    const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
     const { frequency, baseline, allocation } = getState();
 

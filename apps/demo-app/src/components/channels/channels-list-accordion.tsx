@@ -4,11 +4,10 @@ import { useCommanderComponent, useCommanderState } from "@infinigrow/commander/
 
 import { channelsListAccordionInteractions } from "@infinigrow/demo-app/src/components/channels/channels-list-accordion-interactions";
 
-import ChannelItemAccordion from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
-
 import Accordion from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion";
-
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
+
+import ChannelItemAccordion from "@infinigrow/demo-app/src/components/channel/channel-item-accordion";
 
 import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 

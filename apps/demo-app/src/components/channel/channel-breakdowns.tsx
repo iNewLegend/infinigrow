@@ -231,10 +231,6 @@ export const ChannelBreakdowns: React.FC = () => {
                         breaks = generateBreaks( currentState.frequency, currentState.baseline );
                     }
 
-                    if ( ! isMounted() ) {
-                        debugger;
-                    }
-
                     setBreakdownElements( breaks );
                     break;
 
