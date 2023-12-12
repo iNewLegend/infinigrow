@@ -55,6 +55,8 @@ function App() {
         }
     };
 
+    const [ selectedTab, setSelectedTab ] = React.useState( location.hash.replace( "#", "" ) );
+
     const tabsProps = {
         classNames: {
             base: "tabs",
@@ -66,6 +68,11 @@ function App() {
             { id: "allocation", title: "Budget Allocation", content: <BudgetAllocation/> },
             { id: "overview", title: "Budget Overview", content: <BudgetOverview/> },
         ],
+        selectedKey: selectedTab,
+        onSelectionChange: ( id: React.Key ) => {
+            setSelectedTab( id.toString() );
+            location.hash = id.toString();
+        }
     };
 
     return (

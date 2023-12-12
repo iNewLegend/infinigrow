@@ -30,7 +30,7 @@ declare global {
     }
 }
 
-export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, ChannelState> = () => {
+export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props ) => {
     const [ getState, _setState , isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" ),
         state = getState();
 
@@ -45,6 +45,9 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
             } );
         }
     }, [ isMounted ] );
+
+    // @ts-ignore - Handles issue with state not being set on first render, when page loaded on overview.
+    if ( ! state.breaks?.length && props.breaks.length ) state.breaks = props.breaks;
 
     const tableRef = React.useRef<HTMLDivElement>( null );
 
