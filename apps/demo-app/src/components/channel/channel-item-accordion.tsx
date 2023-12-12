@@ -1,7 +1,5 @@
 import React from "react";
 
-import { CommandBase } from "@infinigrow/commander/command-base";
-
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { useCommanderState } from "@infinigrow/commander/use-commands";
 
@@ -15,13 +13,11 @@ import {
 
 import { ChannelBreakdowns } from "@infinigrow/demo-app/src/components/channel/channel-breakdowns";
 
-import { formatNumericStringWithCommas } from "@infinigrow/demo-app/src/utils";
-
-import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import * as commands from "@infinigrow/demo-app/src/components/channel/commands";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
-import type { CommandFunctionComponent, CommandArgs } from "@infinigrow/commander/types";
+import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = ( props, initialState ) => {
     const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem", initialState );
@@ -54,76 +50,10 @@ const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", Chan
     baseline: "0",
     allocation: "equal",
 }, [
-    class SetAllocation extends CommandBase {
-        public static getName() {
-            return "App/ChannelItem/SetAllocation";
-        }
-
-        protected  async apply( args: CommandArgs ) {
-            const { value } = args;
-
-            await this.setState( { allocation: value } );
-
-            return UpdateFromType.FROM_BUDGET_SETTINGS;
-        }
-    },
-    class SetBaseline extends CommandBase {
-        public static getName() {
-            return "App/ChannelItem/SetBaseline";
-        }
-
-        protected async apply( args: CommandArgs ) {
-            const { value } = args;
-
-            const formatted = formatNumericStringWithCommas( value );
-
-            if ( null === formatted ) {
-                return; // Halt
-            }
-
-            await this.setState( { baseline: formatted } );
-
-            return UpdateFromType.FROM_BUDGET_SETTINGS;
-        }
-    },
-    class SetFrequency extends CommandBase {
-        public static getName() {
-            return "App/ChannelItem/SetFrequency";
-        }
-
-        protected async apply( args: CommandArgs ) {
-            const { value } = args;
-
-            await this.setState( { frequency: value } );
-
-            return UpdateFromType.FROM_BUDGET_SETTINGS;
-        }
-    },
-    class SetBreakdown extends CommandBase<Required<ChannelState>> {
-        public static getName() {
-            return "App/ChannelItem/SetBreakdown";
-        }
-
-        protected async apply( args: CommandArgs ) {
-            const { index, value } = args;
-
-            const formatted = formatNumericStringWithCommas( value );
-
-            if ( null === formatted ) {
-                return; // Halt
-            }
-
-            // Create a copy of the current state
-            const newState = { ... this.state };
-
-            // Update the specific break in the breaks array
-            newState.breaks[ index ].value = formatted;
-
-            await this.setState( newState );
-
-            return UpdateFromType.FROM_BUDGET_SETTINGS;
-        }
-    }
+    commands.SetAllocation,
+    commands.SetBaseline,
+    commands.SetBreakdown,
+    commands.SetFrequency,
 ] );
 
 export default $$;

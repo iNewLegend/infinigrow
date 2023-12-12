@@ -6,6 +6,8 @@ import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
 import type { SelectProps } from "@nextui-org/select";
 
 import type {
@@ -48,7 +50,7 @@ export function ChannelBudgetFrequency( props: ChannelBudgetFrequencyProps ) {
 
         selectedKeys: [ frequency ] as any,
 
-        onChange: ( e ) => command.run( { value: e.target.value } )
+        onChange: ( e ) => command.run( { value: e.target.value, source: UpdateSource.FROM_BUDGET_SETTINGS } )
     };
 
     return (

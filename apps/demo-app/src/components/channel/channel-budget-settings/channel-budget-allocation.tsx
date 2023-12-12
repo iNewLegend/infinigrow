@@ -6,6 +6,8 @@ import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
 import type { ButtonProps } from "@nextui-org/button";
 
 import type {
@@ -42,7 +44,7 @@ export function ChannelBudgetAllocationButton( props: ButtonProps & {
             { ... buttonProps }
             data-active={ allocation === current }
             disabled={ allocation === current }
-            onClick={ () => command.run( { value: current } ) }
+            onClick={ () => command.run( { value: current, source: UpdateSource.FROM_BUDGET_SETTINGS } ) }
         >
             { getChannelBudgetAllocationLabel( current ) }
         </Button>

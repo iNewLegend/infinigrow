@@ -7,7 +7,7 @@ import type React from "react";
 /**
  * Each created command is registered within the commands manager, and the instance created only once per command.
  */
-export abstract class CommandBase<TState = React.ComponentState> {
+export abstract class CommandBase<TState = React.ComponentState, TArgs = CommandArgs> {
     private static globalEmitter: EventEmitter = new EventEmitter();
 
     public readonly commandName: string;
@@ -44,10 +44,12 @@ export abstract class CommandBase<TState = React.ComponentState> {
         };
     }
 
-    public execute( emitter: EventEmitter, args: CommandArgs, options?: CommandOptions<TState> ): any {
+    public execute( emitter: EventEmitter, args: TArgs, options?: CommandOptions<TState> ): any {
         if ( options ) {
             this.options = options;
         }
+
+        this.validateArgs?.( args, options );
 
         const result = this.apply?.( args );
 
@@ -61,7 +63,11 @@ export abstract class CommandBase<TState = React.ComponentState> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected apply?( args: CommandArgs ) {
+    protected validateArgs?( args: TArgs, options?: CommandOptions<TState> ) {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected apply?( args: TArgs ) {
     }
 
     protected get state(): TState {

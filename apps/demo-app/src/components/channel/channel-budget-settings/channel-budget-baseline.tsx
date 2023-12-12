@@ -6,6 +6,8 @@ import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
 
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
+
 import {
     getChannelBudgetFrequencyLabel
 } from "@infinigrow/demo-app/src/components/channel/channel-budget-settings/channel-budget-frequency";
@@ -38,6 +40,7 @@ export function ChannelBudgetBaseline( props: ChannelBudgetBaselineProps ) {
         value: ( baseline || 0 ).toString(),
         onChange: ( e ) => command.run( {
             value: e.target.value,
+            source: UpdateSource.FROM_BUDGET_SETTINGS
         } )
     };
 

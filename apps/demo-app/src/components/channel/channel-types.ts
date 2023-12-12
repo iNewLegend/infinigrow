@@ -9,10 +9,11 @@ import type {
 
 export type ChannelItemAccordionComponent = React.ReactComponentElement<typeof ChannelItemAccordion>;
 
-export enum UpdateFromType {
+export enum UpdateSource {
     FROM_UNKNOWN,
     FROM_BUDGET_SETTINGS ,
     FROM_BUDGET_BREAKS,
+    FROM_BUDGET_OVERVIEW,
 }
 
 export interface ChannelState extends React.ComponentState {

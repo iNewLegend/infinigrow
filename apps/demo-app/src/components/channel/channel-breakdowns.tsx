@@ -10,7 +10,7 @@ import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/comp
 
 import { formatNumericStringToFraction } from "@infinigrow/demo-app/src/utils";
 
-import { UpdateFromType } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { InputProps } from "@nextui-org/input";
 
@@ -161,7 +161,7 @@ export const ChannelBreakdowns: React.FC = () => {
         [ getState, setState, isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
     const onBreakdownInputChange = ( index: number, value: string ) => {
-        commands.run( "App/ChannelItem/SetBreakdown", { index, value } );
+        commands.run( "App/ChannelItem/SetBreakdown", { index, value, source: UpdateSource.FROM_BUDGET_BREAKS } );
     };
 
     const state = getState();
@@ -204,7 +204,7 @@ export const ChannelBreakdowns: React.FC = () => {
         } );
     };
 
-    const setCurrentBreakdownsCallback = async ( update: Promise<UpdateFromType> ) => {
+    const setCurrentBreakdownsCallback = async ( update: Promise<UpdateSource> ) => {
         // Ensure that the state is updated before we get the new values.
         const prevFrequency = state.frequency,
             prevBaseline = state.baseline,
@@ -218,11 +218,11 @@ export const ChannelBreakdowns: React.FC = () => {
             let breaks = currentState.breaks!;
 
             switch ( updateFrom ) {
-                case UpdateFromType.FROM_BUDGET_BREAKS:
+                case UpdateSource.FROM_BUDGET_BREAKS:
                     setBreakdownElements( breaks );
                     break;
 
-                case UpdateFromType.FROM_BUDGET_SETTINGS:
+                case UpdateSource.FROM_BUDGET_SETTINGS:
                     const isBudgetSettingsChanged = prevFrequency !== currentState.frequency ||
                         prevAllocation !== currentState.allocation ||
                         ( "0" === currentState.baseline || prevBaseline !== currentState.baseline );
@@ -268,7 +268,7 @@ export const ChannelBreakdowns: React.FC = () => {
         } );
 
         // Update the breaks.
-        setCurrentBreakdownsCallback(  Promise.resolve( UpdateFromType.FROM_BUDGET_BREAKS ) );
+        setCurrentBreakdownsCallback( Promise.resolve( UpdateSource.FROM_BUDGET_BREAKS ) );
     };
 
     React.useEffect( () => {
