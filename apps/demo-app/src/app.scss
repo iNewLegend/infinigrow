@@ -1,4 +1,4 @@
-@use "@infinigrow/demo-app/src/ui-theme/fonts.scss" as fonts;
+@use "@infinigrow/ui/src/fonts.scss" as fonts;
 
 .fs-1 {
     font-family: map-get( fonts.$karu-fonts, 'karu-regular' );

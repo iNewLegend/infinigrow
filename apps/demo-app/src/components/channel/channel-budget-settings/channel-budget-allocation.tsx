@@ -4,7 +4,7 @@ import { ButtonGroup, Button } from "@nextui-org/button";
 
 import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
-import { Info } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { Info } from "@infinigrow/ui/src/symbols";
 
 import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
 

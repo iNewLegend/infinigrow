@@ -1,6 +1,6 @@
-import type { APIComponent } from "api-component.tsx";
+import type { APIComponent } from "api-component";
 
-import type { APICore } from "api-core.tsx";
+import type { APICore } from "api-core";
 
 import type { CommandSingleComponentContext, CommandFunctionComponent } from "@infinigrow/commander/types";
 

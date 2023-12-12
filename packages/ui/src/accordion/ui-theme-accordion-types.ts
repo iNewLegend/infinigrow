@@ -1,6 +1,6 @@
 import type React from "react";
 
-import type { UIThemeAccordionItem } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion.tsx";
+import type { UIThemeAccordionItem } from "@infinigrow/ui/src/accordion/ui-theme-accordion.tsx";
 
 /**
  * Type for the possible states of the Accordion collapse

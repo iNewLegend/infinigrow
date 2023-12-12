@@ -6,13 +6,13 @@ import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
-import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item-menu";
+import { UIThemeAccordionItem } from "@infinigrow/ui/src/accordion/ui-theme-accordion";
 
-import { UIThemeAccordionItem } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion";
+import { AccordionItemMenu } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item-menu";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
-import type { UIThemeAccordionItemProps } from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types";
+import type { UIThemeAccordionItemProps } from "@infinigrow/ui/src/accordion/ui-theme-accordion-types";
 
 export interface AccordionItemProps extends Omit<UIThemeAccordionItemProps, "heading"> {
     heading: {

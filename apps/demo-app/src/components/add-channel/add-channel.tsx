@@ -8,7 +8,7 @@ import { useCommanderCommand } from "@infinigrow/commander/use-commands";
 
 import { CommandBase } from "@infinigrow/commander/command-base";
 
-import { Plus } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { Plus } from "@infinigrow/ui/src/symbols";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 

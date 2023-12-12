@@ -13,7 +13,7 @@ import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/comp
 
 import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
 
-import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/ui/src/symbols";
 
 import * as commands from "@infinigrow/demo-app/src/components/channel/commands";
 

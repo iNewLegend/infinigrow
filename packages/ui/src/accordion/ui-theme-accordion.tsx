@@ -2,20 +2,20 @@ import React from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 
-import "@infinigrow/demo-app/src/ui-theme/accordion/_ui-theme-accordion.scss";
+import "@infinigrow/ui/src/accordion/_ui-theme-accordion.scss";
 
-import { ArrowDown } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { ArrowDown } from "@infinigrow/ui/src/symbols";
 
 import {
     accordionHandleSelection,
     accordionHandleExternalSelection
-} from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-handle-selection";
+} from "@infinigrow/ui/src/accordion/ui-theme-accordion-handle-selection";
 
 import type {
     UIThemeAccordionItemProps,
     UIThemeAccordionProps,
     UIThemeAccordionCollapseStates
-} from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types.ts";
+} from "@infinigrow/ui/src/accordion/ui-theme-accordion-types";
 
 /**
  * Function UIThemeAccordionHeading()

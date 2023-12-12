@@ -2,7 +2,7 @@ import React from "react";
 
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@nextui-org/dropdown";
 
-import { ThreeDots } from "@infinigrow/demo-app/src/ui-theme/symbols";
+import { ThreeDots } from "@infinigrow/ui/src/symbols";
 
 import "@infinigrow/demo-app/src/ui-command-able/accordion/_accordion-item-menu.scss";
 

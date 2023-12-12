@@ -3,6 +3,8 @@
 
 /* SVG are automatically converted memorized by vite-plugin-react-svg */
 
+import "./_symbols.scss";
+
 export { ArrowDown } from "./arrow-down";
 export { ArrowSkinnyRight } from "./arrow-skinny-right";
 export { Cancel } from "./cancel";

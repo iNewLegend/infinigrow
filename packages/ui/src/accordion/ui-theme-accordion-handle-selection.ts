@@ -4,7 +4,7 @@ import type {
     UIThemeAccordionCollapseStates,
     UIThemeAccordionItemProps,
     UIThemeAccordionProps
-} from "@infinigrow/demo-app/src/ui-theme/accordion/ui-theme-accordion-types.ts";
+} from "@infinigrow/ui/src/accordion/ui-theme-accordion-types.ts";
 
 /**
  * Function accordionHandleSelection() Handles the selection of an accordion item.
