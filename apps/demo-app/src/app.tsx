@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { Tab, Tabs } from "@nextui-org/tabs";
 
@@ -7,6 +7,10 @@ import { NextUIProvider } from "@nextui-org/system";
 import { API } from "@infinigrow/api/src";
 
 import { Button } from "@nextui-org/button";
+
+import commandsManager from "@infinigrow/commander/commands-manager";
+
+import { useAnyComponentCommands } from "@infinigrow/commander/use-commands";
 
 import { APIChannelsModule } from "@infinigrow/demo-app/src/api/api-channels-module";
 
@@ -57,6 +61,35 @@ function App() {
 
     const [ selectedTab, setSelectedTab ] = React.useState( location.hash.replace( "#", "" ) );
 
+    useEffect( () => {
+        const addChannel = useAnyComponentCommands( "App/AddChannel" )[ 0 ],
+            addChannelId = {
+                commandName: "App/AddChannel",
+                componentName: "App/AddChannel",
+                componentNameUnique: addChannel.componentNameUnique,
+            };
+
+        if ( location.hash === "#allocation/add-channel" ) {
+            location.hash = "#allocation";
+            setSelectedTab( "allocation" );
+
+            setTimeout( () => {
+                commandsManager.run(  addChannelId, {} );
+            }, 1000 );
+        } else if ( location.hash === "#overview" ) {
+            commandsManager.hook( addChannelId, () => {
+                commandsManager.unhookWithinComponent( addChannelId.componentNameUnique );
+
+                location.hash = "#allocation/add-channel";
+
+                setSelectedTab( "allocation" );
+            } );
+        } else {
+            commandsManager.unhookWithinComponent( addChannelId.componentNameUnique );
+        }
+
+    }, [ location.hash ] );
+
     const tabsProps = {
         classNames: {
             base: "tabs",
@@ -70,8 +103,11 @@ function App() {
         ],
         selectedKey: selectedTab,
         onSelectionChange: ( id: React.Key ) => {
-            setSelectedTab( id.toString() );
-            location.hash = id.toString();
+            if ( ! location.hash.includes( id.toString() ) ) {
+                setSelectedTab( id.toString() );
+
+                location.hash = id.toString();
+            }
         }
     };
 
@@ -83,7 +119,8 @@ function App() {
 
                 localStorage.clear();
                 location.reload();
-            } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={true} radius={ "none" }>Reset Demo</Button>
+            } } className="absolute top-0 right-0 border-none" variant="bordered" disableAnimation={ true }
+                    radius={ "none" }>Reset Demo</Button>
 
             <Layout { ... layoutProps }>
                 <Tabs { ... tabsProps }> {
