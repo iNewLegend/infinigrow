@@ -4,9 +4,6 @@ import type { APIModuleBaseStatic } from "@infinigrow/api/src/api-types";
 
 import type { APIModuleBase } from "@infinigrow/api/src/api-module-base";
 
-// eslint-disable-next-line no-restricted-imports,import/order
-import "@infinigrow/demo-app/src/api/api-fake-data.ts";
-
 export class APICore {
     private modules: Record<string, APIModuleBase> = {};
 

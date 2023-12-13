@@ -11,7 +11,7 @@ import ChannelItemAccordion from "@infinigrow/demo-app/src/components/channel/ch
 
 import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 
-import type {  ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { AccordionItemProps } from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
 
@@ -23,6 +23,8 @@ export function toAccordionItem(
     // Omit `collapsedState` and `setCollapsedState` those are extended by `renderExtendAccordionItem`
     const accordionProps: Omit<AccordionItemProps, "collapsedState" | "setCollapsedState"> = {
         itemKey: channel.props.meta.id,
+
+        onRender: channel.props.onRender,
 
         children: <ChannelItemAccordion { ... channel.props } key={ channel.props.meta.id }/>,
         heading: {
@@ -73,3 +75,5 @@ export const ChannelsListAccordion: React.FC = () => {
         </Accordion>
     );
 };
+
+export default ChannelsListAccordion;

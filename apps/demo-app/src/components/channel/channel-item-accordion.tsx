@@ -15,11 +15,11 @@ import { ChannelBreakdowns } from "@infinigrow/demo-app/src/components/channel/c
 
 import * as commands from "@infinigrow/demo-app/src/components/channel/commands";
 
-import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import type { ChannelItemPropsAccordion, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
-export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, ChannelState> = () => {
+export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemPropsAccordion, ChannelState> = () => {
     const [ getState ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
     const { frequency, baseline, allocation } = getState();
@@ -45,7 +45,7 @@ export const ChannelItemAccordion: CommandFunctionComponent<ChannelItemProps, Ch
     );
 };
 
-const $$ = withCommands<ChannelItemProps, ChannelState>( "App/ChannelItem", ChannelItemAccordion, {
+const $$ = withCommands<ChannelItemPropsAccordion, ChannelState>( "App/ChannelItem", ChannelItemAccordion, {
     frequency: "annually",
     baseline: "0",
     allocation: "equal",

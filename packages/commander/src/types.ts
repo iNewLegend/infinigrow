@@ -36,12 +36,9 @@ export interface CommandSingleComponentContext {
 
     isMounted(): boolean;
 
-    extendedInitialState?: boolean
-    extendInitialState?: React.ComponentState;
-
     getState: <TState>() => React.Component<any, TState>["state"];
     setState<TState, K extends keyof TState = keyof TState>(
-        state: ((prevState: Readonly<TState>) => Pick<TState, K> | TState | null) | (Pick<TState, K> | TState | null),
+        state: ( TState | null ) | ( Pick<TState, K> | TState | null ),
         callback?: ( state: TState ) => void,
     ): void;
 
@@ -58,8 +55,9 @@ export interface CommandComponentContextProps {
     children?: { [ nameUnique: string ]: CommandComponentContextProps };
     parent?: CommandComponentContextProps;
 
-    getComponentName(): string;
     getNameUnique: () => string;
+    getComponentName(): string;
+    getComponentRef(): React.RefObject<any>;
 }
 
 export type CommandArgs = {
@@ -69,7 +67,7 @@ export type CommandArgs = {
 export interface CommandOptions<TState> {
     state?: React.ComponentState;
     setState?: <K extends keyof TState>(
-        state: ( ( prevState: Readonly<TState> ) => Pick<TState, K> | TState | null ) | ( Pick<TState, K> | TState | null ),
+        state: ( TState | null ) | ( Pick<TState, K> | TState | null ),
         callback?: ( state: TState ) => void,
     ) => void;
 }

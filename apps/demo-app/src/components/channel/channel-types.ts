@@ -31,6 +31,7 @@ export interface ChannelMetaData {
     id: string;
     icon: string;
     name: string;
+    createdAt: number,
 }
 
 export interface ChannelBreakData {
@@ -40,4 +41,8 @@ export interface ChannelBreakData {
 
 export interface ChannelItemProps {
     meta: ChannelMetaData;
+}
+
+export interface ChannelItemPropsAccordion extends ChannelItemProps {
+    onRender: () => void;
 }

@@ -5,11 +5,11 @@ import { CommandBase } from "@infinigrow/commander/command-base";
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { useCommanderComponent } from "@infinigrow/commander/use-commands";
 
-import "@infinigrow/demo-app/src/ui-command-able/accordion/_accordion.scss";
-
 import { UIThemeAccordion } from "@infinigrow/ui/src/accordion/ui-theme-accordion";
 
 import AccordionItem from "@infinigrow/demo-app/src/ui-command-able/accordion/accordion-item";
+
+import "@infinigrow/demo-app/src/ui-command-able/accordion/_accordion.scss";
 
 import type { UIThemeAccordionCollapseStates } from "@infinigrow/ui/src/accordion/ui-theme-accordion-types";
 

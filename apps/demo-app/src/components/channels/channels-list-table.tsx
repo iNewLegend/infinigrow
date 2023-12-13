@@ -8,7 +8,7 @@ import "@infinigrow/demo-app/src/components/channels/_channels-list-table.scss";
 
 import type { ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types.ts";
 
-export const ChannelsListTable: React.FC<{}> = () => {
+export const ChannelsListTable: React.FC = () => {
     const [ getChannelsListState ] = useCommanderState<ChannelListState>( "App/ChannelsList" );
 
     const channelsListState = getChannelsListState();
@@ -49,3 +49,5 @@ export const ChannelsListTable: React.FC<{}> = () => {
         </div>
     );
 };
+
+export default ChannelsListTable;

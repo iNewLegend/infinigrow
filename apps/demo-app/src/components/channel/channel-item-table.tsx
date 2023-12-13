@@ -4,6 +4,8 @@ import moment from "moment";
 
 import { Input } from "@nextui-org/input";
 
+import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/ui/src/symbols";
+
 import { withCommands } from "@infinigrow/commander/with-commands";
 import { useCommanderState, useCommanderComponent } from "@infinigrow/commander/use-commands";
 
@@ -11,13 +13,11 @@ import { formatNumericStringToFraction } from "@infinigrow/demo-app/src/utils";
 
 import { DEFAULT_CHANNEL_BREAK_INPUT_PROPS } from "@infinigrow/demo-app/src/components/channel/channel-constants";
 
-import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
-
-import { ArrowSkinnyRight, Pencil, Save, Cancel } from "@infinigrow/ui/src/symbols";
+import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
 import * as commands from "@infinigrow/demo-app/src/components/channel/commands";
 
-import { UpdateSource } from "@infinigrow/demo-app/src/components/channel/channel-types";
+import "@infinigrow/demo-app/src/components/channel/_channel-item-table.scss";
 
 import type { ChannelItemProps, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
 import type { InputProps } from "@nextui-org/input";
@@ -44,7 +44,7 @@ export const ChannelItemTable: CommandFunctionComponent<ChannelItemProps, Channe
                 ... state,
             } );
         }
-    }, [ isMounted ] );
+    }, [ isMounted() ] );
 
     // @ts-ignore - Handles issue with state not being set on first render, when page loaded on overview.
     if ( ! state.breaks?.length && props.breaks.length ) state.breaks = props.breaks;

@@ -1,3 +1,5 @@
+import EventEmitter from "events";
+
 import React from "react";
 
 import commandsManager from "@infinigrow/commander/commands-manager";
@@ -15,6 +17,8 @@ import type { ChannelListState } from "@infinigrow/demo-app/src/components/chann
 
 import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
+const scheduler = new EventEmitter();
+
 // On channel list, request edit title name
 function onEditRequest(
     channel: ChannelItemAccordionComponent,
@@ -25,14 +29,20 @@ function onEditRequest(
     // Select the channel (trigger accordion item selection)
     setSelected( { [ channel.props.meta.id ]: true } );
 
-    accordionItemCommands.some( ( command ) => {
-        if ( command.getInternalContext().props.itemKey === channel.props.meta.id ) {
-            // Tell accordion to enter edit mode
-            command.run( "UI/AccordionItem/EditableTitle", { state: true } );
-
-            return true;
-        }
+    const correspondingCommand = accordionItemCommands.find( ( command ) => {
+        return command.getInternalContext().props.itemKey === channel.props.meta.id;
     } );
+
+    const tryToEnableEdit = ( correspondingCommand: any ) => {
+        // Try tell accordion to enter edit mode
+        correspondingCommand?.run( "UI/AccordionItem/EditableTitle", { state: true } );
+
+        return correspondingCommand;
+    };
+
+    if ( tryToEnableEdit( correspondingCommand ) ) return;
+
+    scheduler.once( `enable-editable-title-${ channel.props.meta.id }`, tryToEnableEdit );
 }
 
 function onRemoveRequest(
@@ -43,11 +53,9 @@ function onRemoveRequest(
     const newList = getChannelsListState().channels.filter( ( c ) => c.props.meta.id !== channel.props.meta.id );
 
     // Remove the channel from the list
-    setChannelsListState( prevChannelsState => {
-        return {
-            ... prevChannelsState,
-            channels: newList,
-        };
+    setChannelsListState( {
+        ... getChannelsListState(),
+        channels: newList,
     } );
 }
 
@@ -56,28 +64,30 @@ function onAddRequest(
     setChannelsListState: ReturnType<typeof useCommanderState<ChannelListState>>[ 1 ],
     channelsCommands: ReturnType<typeof useCommanderComponent>
 ) {
-    const id = Math.random().toString();
+    const id = `channel-${ Math.random().toString( 16 ).slice( 2 ) }`;
 
     // Create a new channel object
     const newChannelProps = {
         meta: {
             id,
             name: "New Channel #" + ( getChannelsListState().channels.length + 1 ),
-            icon: `https://api.dicebear.com/7.x/icons/svg?seed=${ performance.now() }`
+            icon: `https://api.dicebear.com/7.x/icons/svg?seed=${ performance.now() }`,
+            createdAt: new Date().getTime(),
         },
+
+        onRender: () => channelsCommands.run( "App/ChannelsList/EditRequest", { channel: newChannelComponent } ),
     };
 
     // Create a new ChannelItem component with the new channel object as props
-    const newChannelComponent = <ChannelItemAccordion { ... newChannelProps }
-                                                      key={ getChannelsListState().channels.length }/>;
+    const newChannelComponent = <ChannelItemAccordion{ ... newChannelProps }
+                                                     key={ newChannelProps.meta.id }/>;
+
+    const currentState = getChannelsListState();
 
     // Add the new ChannelItem component to the channelsState array
-    setChannelsListState( prevChannelsState => {
-        // Try edit, can be perfect with ref, but it's a demo
-        setTimeout( () => {
-            channelsCommands.run( "App/ChannelsList/EditRequest", { channel: newChannelComponent } );
-        }, 1100 );
-        return { ... prevChannelsState, channels: [ ... prevChannelsState.channels, newChannelComponent ] };
+    setChannelsListState( {
+        ... currentState,
+        channels: [ ... currentState.channels, newChannelComponent ]
     } );
 }
 
@@ -86,20 +96,10 @@ export function channelsListAccordionInteractions() {
 
     const setSelected = ( selected: { [ key: string ]: boolean } ) => setChannelsListState( { selected } );
 
-    const channelsCommands = useCommanderComponent( "App/ChannelsList" ),
-        accordionItemCommands = useCommanderChildrenComponents( "UI/AccordionItem" );
+    const channelsCommands = useCommanderComponent( "App/ChannelsList" );
 
-    // Once each accordion item is rendered, we can attach selection handlers
-    React.useEffect( () => {
-        if ( ! accordionItemCommands.length || ! channelsCommands ) {
-            return;
-        }
-
-        channelsCommands.hook( "App/ChannelsList/EditRequest", ( r, args: any ) =>
-            onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
-
-        channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
-            onRemoveRequest( args.channel, getChannelsListState, setChannelsListState ) );
+    useCommanderChildrenComponents( "UI/AccordionItem", ( accordionItemCommands ) => {
+        if ( ! accordionItemCommands.length ) return;
 
         // Hook on title changed, run command within the channel list, to inform about the change
         accordionItemCommands.forEach( ( command ) => {
@@ -111,7 +111,20 @@ export function channelsListAccordionInteractions() {
                     name: args!.title,
                 } );
             } );
+
+            // This will ensure that the accordion item will enter edit mode, if the channel list requested it
+            const key = `enable-editable-title-${ command.getInternalContext().props.itemKey }`;
+            if ( scheduler.eventNames().includes( key ) ) {
+                scheduler.emit( key, command );
+                scheduler.removeAllListeners( key );
+            }
         } );
+
+        channelsCommands.hook( "App/ChannelsList/EditRequest", ( r, args: any ) =>
+            onEditRequest( args.channel, setSelected, channelsCommands, accordionItemCommands ) );
+
+        channelsCommands.hook( "App/ChannelsList/RemoveRequest", ( r, args: any ) =>
+            onRemoveRequest( args.channel, getChannelsListState, setChannelsListState ) );
 
         return () => {
             accordionItemCommands.forEach( ( command ) => {
@@ -119,9 +132,8 @@ export function channelsListAccordionInteractions() {
             } );
 
             commandsManager.unhookWithinComponent( channelsCommands.getId() );
-
         };
-    }, [ accordionItemCommands, getChannelsListState().channels.length ] );
+    } );
 
     React.useEffect( () => {
         const addChannelCommands = useAnyComponentCommands( "App/AddChannel" );
@@ -132,7 +144,8 @@ export function channelsListAccordionInteractions() {
         };
 
         commandsManager.hook( addChannelCommandId, () =>
-            onAddRequest( getChannelsListState, setChannelsListState, channelsCommands ) );
+            onAddRequest( getChannelsListState, setChannelsListState, channelsCommands )
+        );
 
         return () => {
             commandsManager.unhookWithinComponent( addChannelCommandId.componentNameUnique );

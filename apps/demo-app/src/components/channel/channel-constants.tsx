@@ -1,12 +1,15 @@
+import React from "react";
+
+import type { InputProps } from "@nextui-org/input";
+
 import type { EnforceKeys } from "@infinigrow/demo-app/src/utils";
 import type { ChannelMetaData, ChannelState } from "@infinigrow/demo-app/src/components/channel/channel-types";
-import { InputProps } from "@nextui-org/input";
-import React from "react";
 
 export const META_DATA_KEYS: EnforceKeys<ChannelMetaData> = {
     id: true,
     icon: true,
     name: true,
+    createdAt: true,
 };
 
 export const CHANNEL_LIST_STATE_DATA: EnforceKeys<ChannelState> = {

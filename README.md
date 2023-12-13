@@ -16,6 +16,10 @@ npx bun demo-app:dev
 
 ---
 
+Demo: https://inewlegend.com/projects/infinigrow/index.html
+
+<br />
+
 
 - Use bun to install, npm will not work, since the type of workspace used here, any other package managers not tested
 

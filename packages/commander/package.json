@@ -12,6 +12,9 @@
         "./constants": "./src/_internal/constants.ts",
         "./core": "./src/_internal/core.ts"
     },
+    "dependencies": {
+        "rxjs": "^7.4.0"
+    },
     "devDependencies": {
         "vite": "^5.0.6"
     },

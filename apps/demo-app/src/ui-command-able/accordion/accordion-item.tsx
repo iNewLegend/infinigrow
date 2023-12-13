@@ -27,13 +27,12 @@ export interface AccordionItemProps extends Omit<UIThemeAccordionItemProps, "hea
             color?: "default" | "primary" | "success" | "warning" | "secondary" | "danger",
         },
     },
+    onRender?: () => void,
 }
 
-const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: AccordionItemProps ) => {
+const AccordionItemEditableTitle = React.forwardRef<HTMLSpanElement, Omit<AccordionItemProps, "children">>((props, refForParent ) => {
     const [ isEditing, setIsEditing ] = React.useState( false ),
         [ isFocusCaptured, setIsFocusCaptured ] = React.useState( false );
-
-    const ref = React.useRef<HTMLSpanElement>( null );
 
     const editableCommand = useCommanderCommand( "UI/AccordionItem/EditableTitle" ),
         onTitleChangedCommand = useCommanderCommand( "UI/AccordionItem/OnTitleChanged" );
@@ -45,6 +44,8 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
     const runOnTitleChangedCommand = ( newTitle: string ) => {
         onTitleChangedCommand.run( { title: newTitle, itemKey: props.itemKey } );
     };
+
+    const ref = React.useRef<HTMLSpanElement>( null );
 
     // If selection detached from the element, stop editing
     React.useEffect( () => {
@@ -133,6 +134,8 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
         }
     }
 
+    (refForParent as any).current = ref.current;
+
     return <span
         className="accordion-item-title"
         ref={ ref }
@@ -145,7 +148,7 @@ const AccordionItemEditableTitle: React.FC<AccordionItemProps> = ( props: Accord
     >
         { props.heading?.title }
     </span>;
-};
+});
 
 const AccordionItem: CommandFunctionComponent<AccordionItemProps> = ( props ) => {
     const { itemKey, heading = {}, menu = {} } = props;
@@ -158,13 +161,28 @@ const AccordionItem: CommandFunctionComponent<AccordionItemProps> = ( props ) =>
         }
     };
 
+    const ref = React.useRef<HTMLSpanElement>( null ),
+        onceRef = React.useRef( false );
+
+    React.useEffect( () => {
+        if ( ! ref.current || onceRef.current ) {
+            return;
+        }
+
+        onceRef.current = true;
+
+        if ( props.onRender ) {
+            setTimeout( props.onRender, 800 );
+        }
+    }, [ ref.current ] );
+
     const propsInternal: any = {
         ... props,
 
         heading: {
             ... heading,
 
-            title: AccordionItemEditableTitle( props ),
+            title: <AccordionItemEditableTitle { ...props } ref={ref} />,
 
             extra:
                 <span className={ "accordion-item-menu" }>

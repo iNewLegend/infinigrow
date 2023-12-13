@@ -89,21 +89,32 @@ export function useCommanderComponent( componentName: string, context?: CommandC
     };
 }
 
-export function useCommanderChildrenComponents( componentName: string ) {
+export function useCommanderChildrenComponents(
+    componentName: string,
+    onChildrenUpdate?: ( commands: ReturnType<typeof useCommanderComponent>[] ) => ( () => void ) | void,
+) {
     const componentContext = React.useContext( ComponentIdContext );
 
     const [ childrenComponents, setChildrenComponents ] = React.useState<ReturnType<typeof useCommanderComponent>[]>( [] );
 
-    function countDescendants( context: CommandComponentContextProps ) {
-        let count = 0;
+    function getDescendantsKeys( context: CommandComponentContextProps ) {
+        let keys: string[] = [];
 
+        // Check if the context has children
         if ( context.children ) {
+            // Iterate over each child in the context
             for ( const key in context.children ) {
-                count += 1 + countDescendants( context.children[ key ] );
+                // Add the current child's key to the keys array
+                keys.push( key );
+
+                // Recursively get the keys of the descendants of the current child
+                // and concatenate them to the keys array
+                keys = keys.concat( getDescendantsKeys( context.children[ key ] ) );
             }
         }
 
-        return count;
+        // Join all the keys with a separator to form a unique ID
+        return keys.join( "-" );
     }
 
     React.useEffect( () => {
@@ -115,7 +126,7 @@ export function useCommanderChildrenComponents( componentName: string ) {
 
         const newChildrenComponents: ReturnType<typeof useCommanderComponent>[] = [];
 
-        const loopChildren = ( children: { [x: string]: CommandComponentContextProps; } ) => {
+        const loopChildren = ( children: { [ x: string ]: CommandComponentContextProps; } ) => {
             for ( const childName in children ) {
                 const child = children[ childName ];
 
@@ -134,28 +145,23 @@ export function useCommanderChildrenComponents( componentName: string ) {
         loopChildren( children );
 
         setChildrenComponents( newChildrenComponents );
-    }, [ componentContext, componentName, countDescendants( componentContext ) ] );
+
+        const callback = onChildrenUpdate?.( newChildrenComponents );
+
+        return () => {
+            callback?.();
+        };
+    }, [ getDescendantsKeys( componentContext ) ] );
 
     return childrenComponents;
 }
 
-export function useCommanderState<TState>(
-    componentName: string,
-    extendInitialState?: Partial<TState>
-) {
+export function useCommanderState<TState>( componentName: string ) {
     const componentContext = getSafeContext( componentName );
 
     const id = componentContext.getNameUnique();
 
     const internalContext = core[ GET_INTERNAL_SYMBOL ]( id );
-
-    const initialStateExtendedRef = React.useRef( false );
-
-    if ( extendInitialState && ! initialStateExtendedRef.current ) {
-        internalContext.extendInitialState = extendInitialState;
-
-        initialStateExtendedRef.current = true;
-    }
 
     return [
         internalContext.getState<TState>,

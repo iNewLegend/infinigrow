@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 
 import React from "react";
 
+import { BehaviorSubject } from "rxjs";
+
 // eslint-disable-next-line no-restricted-imports
 import core from "./_internal/core";
 
@@ -60,7 +62,97 @@ export function withCommands(
         throw new Error( "Invalid arguments" );
     }
 
-    let currentContext: CommandComponentContextProps;
+    function stringifyToLevel( obj: any, level: number ): string {
+        let cache = new Map();
+        let str = JSON.stringify( obj, ( key, value ) => {
+            if ( typeof value === "object" && value !== null ) {
+                if ( cache.size > level ) return; // Limit depth
+                if ( cache.has( value ) ) return; // Duplicate reference
+                cache.set( value, true );
+            }
+            return value;
+        } );
+        cache.clear(); // Enable garbage collection
+        return str;
+    }
+
+    function compareObjects( obj1: any, obj2: any, level: number ): boolean {
+        // Add a unique flag property to the objects
+        const flag = Symbol( "compared" );
+
+        // Check if the objects have already been compared
+        if ( obj1[ flag ] && obj2[ flag ] ) {
+            return true;
+        }
+
+        const strObj1 = stringifyToLevel( obj1, level );
+        const strObj2 = stringifyToLevel( obj2, level );
+
+        const isEqual = strObj1 === strObj2;
+
+        // If the objects are equal, flag them as compared
+        if ( isEqual ) {
+            obj1[ flag ] = true;
+            obj2[ flag ] = true;
+        }
+
+        return isEqual;
+    }
+
+    class Store {
+        private silentState: any;
+        private currentState: BehaviorSubject<any>;
+        private prevState: any;
+        private subscription: any;
+
+        public constructor( initialState: any ) {
+            this.currentState = new BehaviorSubject( initialState );
+
+            this.prevState = initialState;
+        }
+
+        public getState() {
+            return this.silentState || this.currentState.getValue();
+        }
+
+        public getPrevState() {
+            return this.prevState;
+        }
+
+        public setState( newState: any, silent = false ) {
+            this.prevState = this.currentState.getValue();
+
+            if ( silent ) {
+                this.silentState = newState;
+
+                return;
+            }
+
+            this.silentState = null;
+
+            this.currentState.next( newState );
+        }
+
+        public hasChanged( level = 2 ) {
+            if ( this.prevState === this.currentState ) {
+                return false;
+            }
+
+            return ! compareObjects( this.prevState, this.currentState.getValue(), level );
+        }
+
+        public subscribe( callback: ( state: any ) => void ) {
+            if ( this.subscription ) {
+                this.subscription.unsubscribe();
+            }
+
+            this.subscription = this.currentState.subscribe( callback );
+
+            callback( this.getState() );
+
+            return this.subscription;
+        }
+    }
 
     if ( state ) {
         const originalFunction = Component,
@@ -68,19 +160,7 @@ export function withCommands(
 
         // This approach give us ability to inject second argument to the functional component.
         Component = function ( props: any ) {
-            const internalContext = core[ GET_INTERNAL_SYMBOL ]( currentContext.getNameUnique() );
-
-            const currentState = internalContext.getState();
-
-            if ( internalContext.extendInitialState ) {
-                for ( const key in internalContext.extendInitialState ) {
-                    ( currentState as any )[ key ] = internalContext.extendInitialState[ key ];
-                }
-
-                delete internalContext.extendInitialState;
-            }
-
-            return originalFunction( props, currentState );
+            return originalFunction( props, state );
         };
 
         Object.defineProperty( Component, originalName, { value: originalName, writable: false } );
@@ -95,12 +175,14 @@ export function withCommands(
 
         public context: CommandComponentContextProps;
 
+        private store: Store;
+
         private $$commander = {
             isMounted: false,
             lifecycleHandlers: {} as any,
         };
 
-        private isMounted()  {
+        private isMounted() {
             return this.$$commander.isMounted;
         }
 
@@ -109,7 +191,8 @@ export function withCommands(
 
             this.context = context;
 
-            this.state = state;
+            this.state = {};
+            this.store = new Store( state );
 
             this.registerInternalContext();
         }
@@ -134,32 +217,25 @@ export function withCommands(
                 commands: commandsManager.get( componentName ),
                 emitter: new EventEmitter(),
 
-                isMounted: () => self.isMounted(),
-
                 key: self.props.$$key,
+
+                isMounted: () => self.isMounted(),
 
                 getComponentContext: () => self.context,
 
-                getState: () => self.state as Readonly<React.ComponentState>,
+                getState: () => this.store ? this.store.getState() : this.state,
                 setState: ( state, callback ) => {
-                    if ( ! self.isMounted() ) {
-                        if ( ! callback ) {
-                            console.warn(
-                                "Can't call setState on a component that is not yet mounted, instead this call will assign `this.state` directly." +
-                                "to ignore this warning, add a callback to setState as a second argument."
-                            );
-                        }
+                    this.store.setState(
+                        {
+                            ... this.store.getState(),
+                            ... state
+                        },
+                        ! this.isMounted(),
+                    );
 
-                        self.state = { ... self.state, ... state };
-
-                        return;
+                    if ( callback ) {
+                        callback( this.store.getState() );
                     }
-
-                    self.setState( state, () => {
-                        if ( callback ) {
-                            callback( self.state );
-                        }
-                    } );
                 },
 
                 lifecycleHandlers: this.$$commander.lifecycleHandlers,
@@ -178,20 +254,6 @@ export function withCommands(
             core[ UNREGISTER_INTERNAL_SYMBOL ]( componentNameUnique );
         }
 
-        public componentDidUpdate( prevProps: any, prevState: any, snapshot?: any ) {
-            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ] ) {
-                const context = core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() );
-
-                this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ]( context, {
-                    currentProps: this.props,
-                    currentState: this.state,
-                    prevProps,
-                    prevState,
-                    snapshot,
-                } );
-            }
-        }
-
         /**
          * Using `componentDidMount` in a strict mode causes component to unmount therefor the context need to be
          * re-registered.
@@ -203,10 +265,32 @@ export function withCommands(
 
             this.registerInternalContext();
 
+            this.store?.subscribe( ( state ) => {
+                if ( ! this.context.getComponentRef()?.current ) {
+                    return;
+                }
+
+                this.forceUpdate();
+            } );
+
             core[ SET_TO_CONTEXT ]( id, { props: this.props } );
 
             if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_MOUNT ] ) {
                 this.$$commander.lifecycleHandlers[ INTERNAL_ON_MOUNT ]( core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() ) );
+            }
+        }
+
+        public componentDidUpdate( prevProps: any, prevState: any, snapshot?: any ) {
+            if ( this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ] ) {
+                const context = core[ GET_INTERNAL_SYMBOL ]( this.context.getNameUnique() );
+
+                this.$$commander.lifecycleHandlers[ INTERNAL_ON_UPDATE ]( context, {
+                    currentProps: this.props,
+                    currentState: this.store.getState(),
+                    prevProps,
+                    prevState: this.store.getPrevState(),
+                    snapshot,
+                } );
             }
         }
 
@@ -219,8 +303,7 @@ export function withCommands(
         }
     };
 
-    function handleAncestorContexts( context: CommandComponentContextProps ) {
-        const parentContext = React.useContext( ComponentIdContext );
+    function handleAncestorContexts( context: CommandComponentContextProps, parentContext: CommandComponentContextProps ) {
 
         if ( parentContext.isSet ) {
             context.parent = parentContext;
@@ -233,45 +316,47 @@ export function withCommands(
             context.parent.children[ context.getNameUnique() ] = context;
         }
 
-        React.useEffect( () => {
-            if ( currentContext.children ) {
-                for ( const key in currentContext.children ) {
-                    const child = currentContext.children[ key ];
+        if ( context.children ) {
+            for ( const key in context.children ) {
+                const child = context.children[ key ];
 
-                    const internalContext = core[ GET_INTERNAL_SYMBOL ]( child.getNameUnique(), true );
+                const internalContext = core[ GET_INTERNAL_SYMBOL ]( child.getNameUnique(), true );
 
-                    if ( ! internalContext ) {
-                        delete currentContext.children[ key ];
-                    }
+                if ( ! internalContext ) {
+                    delete context.children[ key ];
                 }
             }
-        }, [ currentContext, parentContext ] );
+        }
     }
 
     /**
      * React `useId` behave differently in production and development mode, because of `<React.StrictMode>`
      * https://github.com/facebook/react/issues/27103#issuecomment-1763359077
      */
-    const UniqueWrappedComponent = function ( props: any ) {
+    const UniqueWrappedComponent = React.forwardRef( ( props: any, _ref ) => {
+        const parentContext = React.useContext( ComponentIdContext );
+
         const componentNameUnique = `${ componentName }-${ React.useId() }`;
+        const componentRef = React.useRef( null );
 
         const context: CommandComponentContextProps = {
             isSet: true,
 
             getNameUnique: () => componentNameUnique,
             getComponentName: () => componentName,
+            getComponentRef: () => componentRef,
         };
 
-        handleAncestorContexts( context );
-
-        currentContext = context;
+        React.useLayoutEffect( () => {
+            handleAncestorContexts( context, parentContext );
+        }, [ context ] );
 
         return (
             <ComponentIdProvider context={ context }>
-                <WrappedComponent { ... props } $$key={performance.now()}/>
+                <WrappedComponent { ... props } ref={ componentRef } $$key={ performance.now() }/>
             </ComponentIdProvider>
         );
-    };
+    } ) as CommandFunctionComponent;
 
     UniqueWrappedComponent.getName = () => componentName;
 

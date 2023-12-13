@@ -8,7 +8,7 @@ import type { ChannelState } from "@infinigrow/demo-app/src/components/channel/c
 
 import type { CommandArgs } from "@infinigrow/commander/types";
 
-export class SetBreakdown extends CommandBudgetBase<Required<ChannelState>> {
+export class SetBreakdown extends CommandBudgetBase {
     public static getName() {
         return "App/ChannelItem/SetBreakdown";
     }
@@ -22,7 +22,7 @@ export class SetBreakdown extends CommandBudgetBase<Required<ChannelState>> {
             return; // Halt
         }
 
-        const breaks = this.state.breaks.map( ( breakItem, i ) => {
+        const breaks = (this.state as Required<ChannelState>).breaks.map( ( breakItem, i ) => {
             if ( i === index ) {
                 return {
                     ... breakItem,

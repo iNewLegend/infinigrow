@@ -1,9 +1,8 @@
+import type { ChannelsListAccordion } from "@infinigrow/demo-app/src/components/channels/channels-list-accordion";
+
 import type React from "react";
 
-import type { ChannelsList } from "@infinigrow/demo-app/src/components/channels/channels-list";
-
 import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
-import { ChannelsListAccordion } from "./channels-list-accordion.tsx";
 
 export type ChannelsListViewAccordionComponent = React.ReactComponentElement<typeof ChannelsListAccordion>;
 

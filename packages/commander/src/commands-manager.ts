@@ -24,14 +24,7 @@ class CommandsManager {
     public register( args: CommandRegisterArgs ) {
         const { componentName, commands } = args;
 
-        // Check if the component is registered
         if ( this.commands[ componentName ] ) {
-            // @ts-ignore - If it hot reloads then skip the error
-            if ( import.meta.hot?.hmrClient.pruneMap.size ) {
-                return this.get( componentName );
-            }
-
-            throw new Error( `Component '${ componentName }' already registered` );
         }
 
         const createdCommands: CommandBase[] = [];
@@ -42,11 +35,6 @@ class CommandsManager {
 
         commands.forEach( ( command ) => {
             const commandName = ( command as unknown as typeof CommandBase ).getName();
-
-            if ( this.commands[ componentName ][ commandName ] ) {
-                throw new Error( `Command '${ commandName }' already registered for component '${ componentName }'` );
-            }
-
             const commandInstance = new ( command as unknown as CommandNewInstanceWithArgs )( args );
 
             this.commands[ componentName ][ commandName ] = commandInstance;
@@ -86,6 +74,12 @@ class CommandsManager {
         }
 
         return executionResult;
+    }
+
+    public unregister( componentName: string ) {
+        this.unhookWithinComponent( componentName );
+
+        delete this.commands[ componentName ];
     }
 
     public hook( id: CommandIdArgs, callback: ( result?: any, args?: CommandArgs ) => any, options?: {
@@ -154,12 +148,16 @@ class CommandsManager {
         } );
     }
 
-    public get( componentName: string ) {
-        if ( ! this.commands[ componentName ] ) {
+    public get( componentName: string, shouldSilentError = false ) {
+        if ( ! shouldSilentError && ! this.commands[ componentName ] ) {
             throw new Error( `Component '${ componentName }' not registered` );
         }
 
         return this.commands[ componentName ];
+    }
+
+    public getCommands() {
+        return this.commands;
     }
 
     public isHooked( id: CommandIdArgs ) {

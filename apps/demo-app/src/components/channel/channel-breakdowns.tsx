@@ -160,6 +160,8 @@ export const ChannelBreakdowns: React.FC = () => {
     const commands = useCommanderComponent( "App/ChannelItem" ),
         [ getState, setState, isMounted ] = useCommanderState<ChannelState>( "App/ChannelItem" );
 
+    const onceRef = React.useRef( false );
+
     const onBreakdownInputChange = ( index: number, value: string ) => {
         commands.run( "App/ChannelItem/SetBreakdown", { index, value, source: UpdateSource.FROM_BUDGET_BREAKS } );
     };
@@ -167,10 +169,6 @@ export const ChannelBreakdowns: React.FC = () => {
     const state = getState();
 
     React.useEffect( () => {
-        if ( ! isMounted() ) {
-            return;
-        }
-
         let stateChanged = false;
         const newState = { ... getState() };
 
@@ -179,15 +177,29 @@ export const ChannelBreakdowns: React.FC = () => {
             newState.breaks = generateBreaks( newState.frequency, newState.baseline );
         }
 
-        if ( ! newState.breakElements?.length ) {
-            stateChanged = true;
-            newState.breakElements = getBreakElements( newState.breaks!, [], newState.allocation, onBreakdownInputChange );
-        }
-
         if ( stateChanged ) {
             setState( newState );
         }
-    }, [ isMounted(), state, state.breaks, state.breakElements ]  );
+    }, [ isMounted() ] );
+
+    React.useEffect( () => {
+        if ( ! isMounted() && ! onceRef.current ) {
+            return;
+        }
+
+        onceRef.current = true;
+        const currentState = commands.getState<ChannelState>();
+
+        if ( currentState.breaks?.length ) {
+            const newBreaks = getBreakElements( currentState.breaks!, currentState.breakElements || [], currentState.allocation, onBreakdownInputChange );
+
+            if ( newBreaks !== currentState.breakElements ) {
+                setState( {
+                    breakElements: newBreaks
+                } );
+            }
+        }
+    }, [ isMounted(), state.breaks ] );
 
     const setBreakdownElements = ( breaks: ChannelBreakData[] ) => {
         const currentState = commands.getState<ChannelState>();

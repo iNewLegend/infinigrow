@@ -9,8 +9,6 @@ import { CHANNEL_LIST_STATE_DATA_WITH_META } from "@infinigrow/demo-app/src/comp
 
 import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
 
-import "@infinigrow/demo-app/src/api/api-fake-data";
-
 import type { APIComponent } from "@infinigrow/api/src/api-component.tsx";
 
 import type { CommandFunctionComponent, CommandSingleComponentContext } from "@infinigrow/commander/types";
@@ -18,10 +16,10 @@ import type { CommandFunctionComponent, CommandSingleComponentContext } from "@i
 import type { APICore } from "@infinigrow/api/src/api-core.tsx";
 
 export class APIChannelsModule extends APIModuleBase {
-    private channelsListState: Record<string, any> = {};
     private channelsItemState: Record<string, any> = {};
 
     private lastChannelsItemState: Record<string, any> = {};
+    private lastChannelsItemStateUpdated: Record<string, any> = {};
 
     private autosaveDebounceTimer: Timer | undefined;
     private autosaveHandler: ( ( immediate?: boolean ) => boolean ) | undefined;
@@ -78,6 +76,7 @@ export class APIChannelsModule extends APIModuleBase {
 
     protected async responseHandler( component: APIComponent, element: CommandFunctionComponent, response: Response ): Promise<any> {
         const result = await response.json();
+
         return this.handleResponseBasedOnElementName( element.getName!(), result, component );
     }
 
@@ -117,18 +116,13 @@ export class APIChannelsModule extends APIModuleBase {
         const { currentState, prevState } = state;
         switch ( context.componentName ) {
             case "App/ChannelsList":
-                this.channelsListState = state;
                 if ( currentState.channels !== prevState.channels ) {
                     this.onChannelsChanged( prevState.channels, currentState.channels );
                 }
                 break;
             case "App/ChannelItem":
-                if ( ! state.currentProps.$$api_$key$$ ) {
-                    return;
-                }
-
-                this.channelsItemState[ state.currentProps.$$api_$key$$ ] = state;
-                this.lastChannelsItemState[ state.currentProps.$$api_$key$$ ] = state;
+                this.channelsItemState[ state.currentProps.meta.id ] = state;
+                this.lastChannelsItemState[ state.currentProps.meta.id ] = state;
                 break;
             default:
                 throw new Error( `APIChannelsModule: onUpdate() - Unknown component: ${ context.componentName }` );
@@ -176,7 +170,6 @@ export class APIChannelsModule extends APIModuleBase {
                     key,
                     props: i,
                     type: component.props.children!.props.type,
-                    $$api_$key$$: key,
                 };
             } ),
         };
@@ -184,7 +177,6 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Handle the response for an individual channel item. This involves creating a new object with the key and breaks properties modified.
     private handleChannelItemResponse( result: any ) {
-        result.$$api_$key$$ = result.key;
         if ( result.breaks ) {
             result.breaks = result.breaks.map( ( i: any ) => ( {
                 ... i,
@@ -197,7 +189,9 @@ export class APIChannelsModule extends APIModuleBase {
     // Handle the mounting of the channels list. This involves setting up a timer to auto save channels every 5 seconds.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private onChannelsListMount( component: APIComponent, context: CommandSingleComponentContext ) {
-        const commands = commandsManager.get( "UI/Accordion" );
+        const commands = commandsManager.get( "UI/Accordion", true );
+
+        if ( ! commands ) return;
 
         const onSelectionAttached = commands[ "UI/Accordion/onSelectionAttached" ],
             onSelectionDetached = commands[ "UI/Accordion/onSelectionDetached" ];
@@ -215,7 +209,9 @@ export class APIChannelsModule extends APIModuleBase {
         // Save immediately when the channels list is unmounted.
         this.saveChannels();
 
-        const commands = commandsManager.get( "UI/Accordion" );
+        const commands = commandsManager.get( "UI/Accordion", true );
+
+        if ( ! commands ) return;
 
         const onSelectionAttached = commands[ "UI/Accordion/onSelectionAttached" ],
             onSelectionDetached = commands[ "UI/Accordion/onSelectionDetached" ];
@@ -226,14 +222,18 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Handle the mounting of an individual channel item. This involves fetching the channel data from the API and updating the state if necessary.
     private async onChannelItemMount( component: APIComponent, context: CommandSingleComponentContext ) {
-        if ( ! context.props.$$api_$key$$ ) return;
+        // if ( Object.keys( this.channelsItemState ).length === 0 ) return;
 
-        if ( Object.keys( this.channelsItemState ).length === 0 ) return;
-
-        const key = context.props.$$api_$key$$;
+        const key = context.props.meta.id;
 
         try {
             const apiData = await this.fetchAPIGetChannel( key );
+
+            // Set current for next code execution.
+            this.channelsItemState[ key ] = {
+                currentProps: context.props,
+                currentState: context.getState(),
+            };
 
             if ( context.isMounted() && this.shouldUpdateStateFromRemote( apiData, key, context ) ) {
                 this.updateStateFromRemote( apiData, context );
@@ -247,8 +247,9 @@ export class APIChannelsModule extends APIModuleBase {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private async onChannelItemUnmount( component: APIComponent, context: CommandSingleComponentContext ) {
         // If state is the same as the last known state, then it is safe to remove it.
-        if ( Object.values( this.lastChannelsItemState ).find( l => l.currentState === context.getState() ) ) {
-            delete this.lastChannelsItemState[ context.props.$$api_$key$$ ];
+        if ( Object.values( this.lastChannelsItemStateUpdated ).find( l => l === context.getState() ) ) {
+            delete this.lastChannelsItemState[ context.props.meta.id ];
+            delete this.lastChannelsItemStateUpdated[ context.props.meta.id ];
 
             return;
         }
@@ -261,17 +262,21 @@ export class APIChannelsModule extends APIModuleBase {
         for ( let i = 0 ; i < currentChannels.length ; i++ ) {
             if ( ! prevChannels[ i ] || ! currentChannels[ i ] ) continue;
             if ( prevChannels[ i ].props.meta !== currentChannels[ i ].props.meta ) {
-                this.onChannelsMetaDataChanged( currentChannels[ i ].key!, prevChannels[ i ].props.meta, currentChannels[ i ].props.meta );
+                this.onChannelsMetaDataChanged(
+                    currentChannels[ i ].props.meta.id!,
+                    currentChannels[ i ].props.meta,
+                    prevChannels[ i ].props.meta
+                );
             }
         }
 
-        const prevKeys = prevChannels.map( channel => channel.key );
-        const currentKeys = currentChannels.map( channel => channel.key );
+        const prevKeys = prevChannels.map( channel => channel.props.meta.id );
+        const currentKeys = currentChannels.map( channel => channel.props.meta.id );
 
         const addedKeys = currentKeys.filter( key => ! prevKeys.includes( key ) );
 
         for ( const key of addedKeys ) {
-            const newChannel = currentChannels.find( channel => channel.key === key );
+            const newChannel = currentChannels.find( channel => channel.props.meta.id === key );
 
             if ( newChannel && newChannel.props && newChannel.props.meta ) {
                 this.onChannelAdded( newChannel );
@@ -291,12 +296,9 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     private onChannelAdded( newChannel: any ) {
-        // Add the new channel to the channelsItemState object
-        this.channelsItemState[ newChannel.key ] = newChannel;
-
         // Send a POST request to the API to create the new channel
-        this.api.fetch( "POST", `v1/channels/${ newChannel.key }`, {
-            key: newChannel.key,
+        this.api.fetch( "POST", "v1/channels/:key", {
+            key: newChannel.props.meta.id,
             meta: newChannel.props.meta,
         }, ( r: {
             json: () => any;
@@ -304,16 +306,25 @@ export class APIChannelsModule extends APIModuleBase {
     }
 
     private onChannelRemoved( key: string ) {
-        this.api.fetch( "DELETE", `v1/channels/${ key }`, {}, ( r: { json: () => any; } ) => r.json() );
+        this.api.fetch( "DELETE", `v1/channels/${ key }`, {}, ( r: { json: () => any; } ) => r.json() ).then( () => {
 
-        delete this.channelsItemState[ key ];
+            delete this.channelsItemState[ key ];
 
-        // Safe removed.
-        delete this.lastChannelsItemState[ key ];
+            // Safe removed.
+            delete this.lastChannelsItemState[ key ];
+        } );
     }
 
     // Handle when the meta data of a channel changes. This involves sending a POST request to the API with the new meta data.
-    private onChannelsMetaDataChanged( key: string, prevMeta: any, currentMeta: any ) {
+    private onChannelsMetaDataChanged( key: string, currentMeta: any, _prevMeta: any ) {
+        if ( this.channelsItemState[ key ]?.currentState?.meta ) {
+            this.channelsItemState[ key ].currentState.meta = currentMeta;
+        }
+
+        if ( this.lastChannelsItemState[ key ]?.currentState?.meta ) {
+            this.lastChannelsItemState[ key ].currentState.meta = currentMeta;
+        }
+
         this.api.fetch( "POST", "v1/channels/:key", { key, meta: currentMeta }, ( r: {
             json: () => any;
         } ) => r.json() );
@@ -343,7 +354,7 @@ export class APIChannelsModule extends APIModuleBase {
             console.log( "APIChannelsModule: saveChannels()" );
 
             lastKnownStates.forEach( ( state: any ) => {
-                const key = state.currentProps.$$api_$key$$;
+                const key = (state.props || state.currentProps).meta.id;
 
                 const stateToSave = pickEnforcedKeys( { ... state.currentProps, ... state.currentState },
                     CHANNEL_LIST_STATE_DATA_WITH_META
@@ -351,9 +362,11 @@ export class APIChannelsModule extends APIModuleBase {
 
                 console.log( "APIChannelsModule: saveChannels() - stateToSave", stateToSave );
 
-                this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( r: {
+                this.api.fetch( "POST", "v1/channels/:key", { key, ... stateToSave }, ( _r: {
                     json: () => any;
                 } ) => {
+                    this.lastChannelsItemStateUpdated[ key ] = stateToSave;
+
                     delete this.lastChannelsItemState[ key ];
                 } );
 
@@ -365,7 +378,7 @@ export class APIChannelsModule extends APIModuleBase {
 
     // Update the state with the data from the API.
     private updateStateFromRemote( apiData: any, context: CommandSingleComponentContext ) {
-        console.log( "APIChannelsModule: updateStateFromRemote()", apiData );
+        console.log( "%c APIChannelsModule: updateStateFromRemote()", "font-weight:bold;", apiData );
 
         if ( apiData.breaks ) {
             apiData.breaks = apiData.breaks.map( ( i: any ) => ( {
@@ -397,6 +410,5 @@ export class APIChannelsModule extends APIModuleBase {
     private async fetchAPIGetChannel( key: string ) {
         return await this.api.fetch( "GET", `v1/channels/${ key }`, {}, ( res: { json: () => any; } ) => res.json() );
     }
-
 }
 

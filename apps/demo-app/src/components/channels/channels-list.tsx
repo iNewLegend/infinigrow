@@ -3,17 +3,10 @@ import React from "react";
 import { CommandBase } from "@infinigrow/commander/command-base";
 
 import { withCommands } from "@infinigrow/commander/with-commands";
-import { useCommanderState } from "@infinigrow/commander/use-commands";
 
 import { META_DATA_KEYS } from "@infinigrow/demo-app/src/components/channel/channel-constants";
 
-import ChannelItem from "@infinigrow/demo-app/src/components//channel/channel-item-accordion.tsx";
-
 import { pickEnforcedKeys } from "@infinigrow/demo-app/src/utils";
-
-import { ChannelsListAccordion } from "@infinigrow/demo-app/src/components//channels/channels-list-accordion.tsx";
-
-import { ChannelsListTable } from "@infinigrow/demo-app/src/components/channels/channels-list-table";
 
 import type { ChannelItemAccordionComponent } from "@infinigrow/demo-app/src/components/channel/channel-types";
 
@@ -21,31 +14,28 @@ import type { CommandFunctionComponent } from "@infinigrow/commander/types";
 
 import type { ChannelListProps, ChannelListState } from "@infinigrow/demo-app/src/components/channels/channels-types";
 
-export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelListState> = ( props ) => {
+const AccordionChannelsList = React.lazy( () => import( "@infinigrow/demo-app/src/components/channels/channels-list-accordion" ) );
+
+const TableChannelsList = React.lazy( () => import( "@infinigrow/demo-app/src/components/channels/channels-list-table" ) );
+
+export const ChannelsList: CommandFunctionComponent<ChannelListProps, ChannelListState> = ( props, state ) => {
     let channels: ChannelItemAccordionComponent[] = Array.isArray( props.children ) ? props.children : [ props.children ];
 
-    // Helps to detect development errors.
-    if ( channels.some( ( child ) => child.type !== ChannelItem ) ) {
-        throw new Error( `<${ ChannelsList.name }> can accept only <${ ChannelItem.name }> as children` );
-    }
+    state.channels = channels.map( ( channel ) => {
+        return {
+            ... channel,
 
-    useCommanderState<ChannelListState>( "App/ChannelsList", {
-        channels: channels.map( ( channel ) => {
-            return {
-                ... channel,
-
-                // Exposing meta, for commands to use
-                meta: pickEnforcedKeys( channel.props.meta, META_DATA_KEYS )
-            };
-        } ),
+            // Exposing meta, for commands to use
+            meta: pickEnforcedKeys( channel.props.meta, META_DATA_KEYS )
+        };
     } );
 
     switch ( props.view ) {
         case "accordion":
-            return ( <ChannelsListAccordion/> );
+            return <AccordionChannelsList />;
 
         case "table":
-            return ( <ChannelsListTable/> );
+            return <TableChannelsList />;
 
         default:
             throw new Error( `Unknown view: ${ props.view }` );
@@ -84,7 +74,8 @@ const $$ = withCommands<ChannelListProps, ChannelListState>( "App/ChannelsList",
                         meta: {
                             ... channels[ channelIndex ].props.meta,
                             name: args.name,
-                        }
+                        },
+                        onRender: () => {},
                     },
                 };
 
